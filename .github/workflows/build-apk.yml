@@ -26,7 +26,6 @@ jobs:
         with:
           distribution: "temurin"
           java-version: "17"
-          cache: none
 
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
@@ -34,17 +33,10 @@ jobs:
           gradle-version: 8.7
           cache-disabled: true
 
-      - name: Generate Gradle wrapper (if missing)
-        run: |
-          if [ ! -f gradlew ]; then
-            echo "wrapper missing — generating via the gradle-build-action"
-          fi
-
       - name: Build release APK
         env:
           ORG_GRADLE_PROJECT_cdnSupportsFailingBuildType: "true"
         run: |
-          # Use gradle directly (gradle-build-action puts it on PATH)
           gradle :app:assembleRelease \
             -Dorg.gradle.jvmargs="-Xmx4096m -Dfile.encoding=UTF-8" \
             --no-daemon
