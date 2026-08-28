@@ -29,7 +29,7 @@ fun KelasScreen(viewModel: KelasViewModel = hiltViewModel()) {
     var showAdd by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
 
     Scaffold(
-        topBar = { SmallTopAppBar(title = { Text("Data Kelas") }) },
+        topBar = { TopAppBar(title = { Text("Data Kelas") }) },
         floatingActionButton = { FloatingActionButton(onClick = { showAdd = true }, containerColor = Color(0xFF1A73E8)) { Icon(Icons.Default.Add, contentDescription = null, tint = Color.White) } }
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {

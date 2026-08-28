@@ -7,12 +7,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Wifi
-import androidx.compose.material.icons.filled.BluBluetooth
+import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -36,7 +37,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
     androidx.compose.runtime.LaunchedEffect(deviceId) { viewModel.load(deviceId) }
 
     Scaffold(
-        topBar = { SmallTopAppBar(title = { Text("Pengaturan") }) }
+        topBar = { TopAppBar(title = { Text("Pengaturan") }) }
     ) { padding ->
         Column(
             Modifier
@@ -48,7 +49,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
             Text("Data Sekolah", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             Spacer(Modifier.height(12.dp))
 
-            OutlinedTextField(value = s.storeName, onValueChange = {}, label = { Text("Nama Sekolah") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+            OutlinedTextField(value = s.schoolName, onValueChange = {}, label = { Text("Nama Sekolah") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
             Spacer(Modifier.height(8.dp))
             OutlinedTextField(value = s.teacherName, onValueChange = {}, label = { Text("Nama Guru") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
             Spacer(Modifier.height(8.dp))
@@ -91,7 +92,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
                             Text("WiFi")
                         }
                         OutlinedButton(onClick = { /* Bluetooth pairing flow */ }, modifier = Modifier.weight(1f)) {
-                            Icon(Icons.Default.BluBluetooth, contentDescription = null, tint = Color(0xFF1A73E8))
+                            Icon(Icons.Default.Bluetooth, contentDescription = null, tint = Color(0xFF1A73E8))
                             Text("Bluetooth")
                         }
                     }

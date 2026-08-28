@@ -20,9 +20,7 @@ data class SiswaUiState(
     val search: String = "",
     val isLoading: Boolean = true,
     val errorMsg: String? = null,
-)
-
-/** ViewModel — lists, search, soft-delete, class filter. */
+)/** ViewModel — lists, search, soft-delete, class filter. */
 @HiltViewModel
 class SiswaViewModel @Inject constructor(
     private val repo: Repository,
@@ -70,6 +68,22 @@ class SiswaViewModel @Inject constructor(
         viewModelScope.launch {
             repo.softDeleteSiswa(id, System.currentTimeMillis())
             loadAll()
+        }
+    }
+
+    fun addSiswa(siswa: Siswa, onResult: (Long) -> Unit = {}) {
+        viewModelScope.launch {
+            val id = repo.addSiswa(siswa)
+            loadAll()
+            onResult(id)
+        }
+    }
+
+    fun updateSiswa(siswa: Siswa, onResult: () -> Unit = {}) {
+        viewModelScope.launch {
+            repo.updateSiswa(siswa)
+            loadAll()
+            onResult()
         }
     }
 }

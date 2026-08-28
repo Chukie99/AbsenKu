@@ -42,7 +42,7 @@ fun SiswaListScreen(
     var expanded by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
 
     Scaffold(
-        topBar = { SmallTopAppBar(title = { Text("Data Siswa") }) },
+        topBar = { TopAppBar(title = { Text("Data Siswa") }) },
         floatingActionButton = {
             FloatingActionButton(onClick = onAdd, containerColor = Color(0xFF1A73E8)) {
                 Icon(Icons.Default.Add, contentDescription = null, tint = Color.White)

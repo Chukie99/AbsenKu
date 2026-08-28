@@ -40,7 +40,7 @@ fun AbsenScreen(viewModel: AbsenViewModel = hiltViewModel()) {
     }
 
     Scaffold(
-        topBar = { SmallTopAppBar(title = { Text("Absen Siswa") }) },
+        topBar = { TopAppBar(title = { Text("Absen Siswa") }) },
         floatingActionButton = {
             // Manual entry
             FloatingActionButton(onClick = { scanTrigger.value++ }, containerColor = Color(0xFF1A73E8)) {

@@ -19,9 +19,8 @@ from collections import defaultdict, deque
 from threading import Lock
 from flask import Flask, request, jsonify
 
-import dbm  # local alias for db_manager
 import sys
-sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import db_manager as db
 
 app = Flask(__name__)

@@ -18,8 +18,6 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import os
 
-STYLE = getSampleStyling() if False else None
-
 # ── Helpers ──
 def _style_h1():
     s = getSampleStyleSheet()["Heading1"].clone("h1")

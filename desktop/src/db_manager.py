@@ -129,9 +129,9 @@ def siswa_insert(nis, nama, kelas_id, foto, alamat, no_hp, tgl_lahir):
     return exec_one("INSERT INTO siswa (nis, nama, kelas_id, foto, alamat, no_hp_ortu, tanggal_lahir) VALUES (?,?,?,?,?,?,?)",
                     (nis, nama, kelas_id, foto, alamat, no_hp, tgl_lahir))
 
-def siswa_update(id, nis, nama, kelas_id, alamat, no_hp, tgl_lahir):
-    exec_one("UPDATE siswa SET nis=?, nama=?, kelas_id=?, alamat=?, no_hp_ortu=?, tanggal_lahir=?, updated_at=CURRENT_TIMESTAMP WHERE id=?",
-             (nis, nama, kelas_id, alamat, no_hp, tgl_lahir, id))
+def siswa_update(id, nis, nama, kelas_id, foto, alamat, no_hp, tgl_lahir):
+    exec_one("UPDATE siswa SET nis=?, nama=?, kelas_id=?, foto=?, alamat=?, no_hp_ortu=?, tanggal_lahir=?, updated_at=CURRENT_TIMESTAMP WHERE id=?",
+             (nis, nama, kelas_id, foto, alamat, no_hp, tgl_lahir, id))
 
 def siswa_soft_delete(id):
     exec_one("UPDATE siswa SET is_active=0, deleted_at=CURRENT_TIMESTAMP WHERE id=?", (id,))

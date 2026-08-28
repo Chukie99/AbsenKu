@@ -21,20 +21,7 @@ data class Siswa(
     @ColumnInfo(name = "deleted_at") val deletedAt: Long? = null,  // epoch millis
     @ColumnInfo(name = "created_at") val createdAt: Long = System.currentTimeMillis(),
     @ColumnInfo(name = "updated_at") val updatedAt: Long = System.currentTimeMillis(),
-) {
-    data class CartItem(
-        val productId: Long,
-        val product: Product,
-        val quantity: Int,
-        val subtotal: Long,
-    )
-    data class CartItem(
-        val siswaId: Long,
-        val product: Siswa,
-        val quantity: Int = 1,
-        val subtotal: Long,
-    )
-}
+)
 
 /**
  * Kelas — a physical class (e.g. "X IPA 1") with a homeroom teacher.
@@ -108,11 +95,10 @@ data class Pengaturan(
     @ColumnInfo(name = "updated_at") val updatedAt: Long = System.currentTimeMillis(),
 ) {
     companion object {
-        const val KEY_STORE_NAME = "store_name"
-        const val KEY_STORE_ADDRESS = "store_address"
-        const val KEY_STORE_PHONE = "store_phone"
-        const val KEY_STORE_LOGO = "store_logo"
-        const val KEY_TAX_RATE = "tax_rate"
+        const val KEY_SCHOOL_NAME = "school_name"
+        const val KEY_SCHOOL_ADDRESS = "school_address"
+        const val KEY_SCHOOL_PHONE = "school_phone"
+        const val KEY_SCHOOL_LOGO = "school_logo"
         const val KEY_TEACHER_NAME = "teacher_name"
         const val KEY_YEAR = "year"
     }

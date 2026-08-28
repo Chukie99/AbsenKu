@@ -50,7 +50,7 @@ fun ReportScreen(viewModel: ReportViewModel = hiltViewModel()) {
     var datePicker by remember { mutableStateOf<androidx.compose.material3.DatePickerDialog?>(null) }
 
     Scaffold(
-        topBar = { SmallTopAppBar(title = { Text("Laporan") }) },
+        topBar = { TopAppBar(title = { Text("Laporan") }) },
         floatingActionButton = {
             if (s.todayAbsensi.isNotEmpty()) {
                 FloatingActionButton(onClick = { exportLauncher.launch("absen_${System.currentTimeMillis()}.csv") }, containerColor = Color(0xFF1A73E8)) {

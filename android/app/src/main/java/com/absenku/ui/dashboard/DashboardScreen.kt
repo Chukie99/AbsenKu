@@ -56,10 +56,10 @@ fun DashboardScreen(
 
         // Summary cards
         val cards = listOf(
-            "Hadir" to state.todayHadir to Color(0xFF34A853),
-            "Izin" to state.todayIzin to Color(0xFFFBBC04),
-            "Sakit" to state.todaySakit to Color(0xFFFF9800),
-            "Alfa" to state.todayAlfa to Color(0xFFD93025),
+            Triple("Hadir", state.todayHadir, Color(0xFF34A853)),
+            Triple("Izin", state.todayIzin, Color(0xFFFBBC04)),
+            Triple("Sakit", state.todaySakit, Color(0xFFFF9800)),
+            Triple("Alfa", state.todayAlfa, Color(0xFFD93025)),
         )
         LazyRowOrGrid(cards)
 
@@ -74,7 +74,7 @@ fun DashboardScreen(
 }
 
 @Composable
-private fun LazyRowOrGrid(cards: List<Pair<String, Pair<Int, Color>>>) {
+private fun LazyRowOrGrid(cards: List<Triple<String, Int, Color>>) {
     val ctx = LocalContext
     Row(
         Modifier
@@ -82,8 +82,7 @@ private fun LazyRowOrGrid(cards: List<Pair<String, Pair<Int, Color>>>) {
             .padding(top = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        cards.forEach { (label, pair) ->
-            val (count, color) = pair
+        cards.forEach { (label, count, color) ->
             Card(
                 modifier = Modifier.weight(1f).height(100.dp),
                 shape = RoundedCornerShape(12.dp),

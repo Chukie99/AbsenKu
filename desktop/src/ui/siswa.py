@@ -168,7 +168,7 @@ class SiswaForm:
             except ValueError:
                 kid = 0
             if self.record:
-                db.siswa_update(self.record["id"], nis, nama, kid, self.record.get("foto"), alamat_e.get(), hp_e.get(), tgl_e.get())
+                db.siswa_update(self.record["id"], nis, nama, kid, self.record.get("foto",""), alamat_e.get(), hp_e.get(), tgl_e.get())
             else:
                 db.siswa_insert(nis, nama, kid, None, alamat_e.get(), hp_e.get(), tgl_e.get())
             if self.on_save: self.on_save()

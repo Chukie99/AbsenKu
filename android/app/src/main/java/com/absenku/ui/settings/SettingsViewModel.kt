@@ -14,9 +14,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class SettingsUiState(
-    val storeName: String = "",
-    val storeAddress: String = "",
-    val storePhone: String = "",
+    val schoolName: String = "",
+    val schoolAddress: String = "",
+    val schoolPhone: String = "",
     val teacherName: String = "",
     val year: String = "",
     val logo: String? = null,
@@ -39,11 +39,11 @@ class SettingsViewModel @Inject constructor(
     fun load(deviceId: String = DeviceIdHelper.getDeviceId(appContext)) {
         viewModelScope.launch {
             _state.value = SettingsUiState(
-                storeName = repo.getSetting(Pengaturan.KEY_STORE_NAME)?.value ?: "",
-                storeAddress = repo.getSetting(Pengaturan.KEY_STORE_ADDRESS)?.value ?: "",
-                storePhone = repo.getSetting(Pengaturan.KEY_STORE_PHONE)?.value ?: "",
+                schoolName = repo.getSetting(Pengaturan.KEY_SCHOOL_NAME)?.value ?: "",
+                schoolAddress = repo.getSetting(Pengaturan.KEY_SCHOOL_ADDRESS)?.value ?: "",
+                schoolPhone = repo.getSetting(Pengaturan.KEY_SCHOOL_PHONE)?.value ?: "",
                 teacherName = repo.getSetting(Pengaturan.KEY_TEACHER_NAME)?.value ?: "",
-                year = repo.getSetting("year")?.value ?: "",
+                year = repo.getSetting(Pengaturan.KEY_YEAR)?.value ?: "",
                 deviceId = deviceId,
                 isActivated = repo.getAktivasi()?.status == "active",
                 serial = repo.getAktivasi()?.serialNumber,
@@ -53,11 +53,11 @@ class SettingsViewModel @Inject constructor(
 
     fun save(name: String, address: String, phone: String, teacher: String, year: String) {
         viewModelScope.launch {
-            repo.putSetting(Pengaturan.KEY_STORE_NAME, name)
-            repo.putSetting(Pengaturan.KEY_STORE_ADDRESS, address)
-            repo.putSetting(Pengaturan.KEY_STORE_PHONE, phone)
+            repo.putSetting(Pengaturan.KEY_SCHOOL_NAME, name)
+            repo.putSetting(Pengaturan.KEY_SCHOOL_ADDRESS, address)
+            repo.putSetting(Pengaturan.KEY_SCHOOL_PHONE, phone)
             repo.putSetting(Pengaturan.KEY_TEACHER_NAME, teacher)
-            repo.putSetting("year", year)
+            repo.putSetting(Pengaturan.KEY_YEAR, year)
             load()
         }
     }

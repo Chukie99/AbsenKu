@@ -37,7 +37,7 @@ fun ActivationScreen(
     }
 
     Scaffold(
-        topBar = { SmallTopAppBar(title = { Text("Aktivasi AbsenKu") }) }
+        topBar = { TopAppBar(title = { Text("Aktivasi AbsenKu") }) }
     ) { padding ->
         Column(
             modifier = Modifier

@@ -53,7 +53,7 @@ def scale_to_fit(im: Image.Image) -> Image.Image:
     w, h = im.size
     if w <= MAX_W and h <= MAX_H:
         return im
-    ratio = min(MAX_W / w, MAX_H / h, MAX_W / w)  # fit within box
+    ratio = min(MAX_W / w, MAX_H / h, 1.0)  # fit within box, never upscale
     new_w = int(w * ratio)
     new_h = int(h * ratio)
     return im.resize((new_w, new_h), Image.LANCZOS)

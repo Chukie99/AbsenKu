@@ -65,15 +65,28 @@ fun SiswaFormScreen(
     }
 
     Scaffold(
-        topBar = { SmallTopAppBar(title = { Text(if (siswa == null) "Tambah Siswa" else "Edit Siswa") }) },
+        topBar = { TopAppBar(title = { Text(if (siswa == null) "Tambah Siswa" else "Edit Siswa") }) },
         floatingActionButton = {
             FloatingActionButton(onClick = {
                 if (nis.isBlank() || nama.isBlank()) {
                     onSaved() // caller shows error
                     return@FloatingActionButton
                 }
-                // For now we only persist via ViewModel — extend addSiswa call
-                onSaved()
+                val siswaData = Siswa(
+                    id = siswa?.id ?: 0,
+                    nis = nis,
+                    nama = nama,
+                    kelasId = selectedKelas,
+                    foto = fotoPath.ifBlank { null },
+                    alamat = alamat.ifBlank { null },
+                    noHpOrtu = noHp.ifBlank { null },
+                    tanggalLahir = tglLahir.ifBlank { null },
+                )
+                if (siswa == null) {
+                    viewModel.addSiswa(siswaData) { onSaved() }
+                } else {
+                    viewModel.updateSiswa(siswaData) { onSaved() }
+                }
             }, containerColor = Color(0xFF1A73E8)) {
                 Text("Simpan", fontWeight = FontWeight.Bold)
             }
