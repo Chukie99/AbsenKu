@@ -2,7 +2,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Splash theme (no action bar) -->
     <style name="Theme.Absenku.Splash" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="windowBackground">@color/primaryLight</item>
+        <item name="android:windowBackground">@color/primaryLight</item>
         <item name="android:windowNoTitle">true</item>
     </style>
 
