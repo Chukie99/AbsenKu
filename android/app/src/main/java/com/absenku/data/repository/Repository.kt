@@ -34,7 +34,7 @@ class Repository private constructor(private val db: AppDatabase) {
 
     // ── ABSENSI ──
     suspend fun getByDateAbsensi(tanggal: String): List<Absensi> = db.absensiDao().getByDate(tanggal)
-    fun getAbsensiByDate(tanggal: String): List<Absensi> = db.absensiDao().getByDate(tanggal)  // alias
+    suspend fun getAbsensiByDate(tanggal: String): List<Absensi> = db.absensiDao().getByDate(tanggal)  // alias
     suspend fun getBySiswaAndDate(siswaId: Long, tanggal: String) = db.absensiDao().getBySiswaAndDate(siswaId, tanggal)
     suspend fun getAbsensiBySiswa(id: Long): List<Absensi> = db.absensiDao().getBySiswa(id)
     suspend fun addAbsensi(absensi: Absensi): Long = db.absensiDao().insert(absensi)
@@ -70,7 +70,7 @@ class Repository private constructor(private val db: AppDatabase) {
     suspend fun getSyncLog(): List<SyncLog> = db.syncLogDao().getRecent()
 
     // ── EXPORT FLOW ──
-    fun getAllSiswaIncludingInactive(): List<Siswa> = db.siswaDao().getAll()
+    suspend fun getAllSiswaIncludingInactive(): List<Siswa> = db.siswaDao().getAll()
 
     companion object {
         @Volatile private var INSTANCE: Repository? = null

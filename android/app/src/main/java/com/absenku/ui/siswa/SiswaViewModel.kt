@@ -41,12 +41,12 @@ class SiswaViewModel @Inject constructor(
 
     fun search(q: String) {
         _state.value = _state.value.copy(search = q)
-        applyFilters()
+        viewModelScope.launch { applyFilters() }
     }
 
     fun filterByKelas(kelasId: Long?) {
         _state.value = _state.value.copy(selectedKelas = kelasId)
-        applyFilters()
+        viewModelScope.launch { applyFilters() }
     }
 
     private suspend fun applyFilters() {

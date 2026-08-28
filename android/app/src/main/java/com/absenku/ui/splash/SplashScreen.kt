@@ -1,12 +1,20 @@
 package com.absenku.ui.splash
 
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Box
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.absenku.ui.theme.AksenSplashTheme
+import com.absenku.ui.AbsenNavHost
+import com.absenku.ui.activation.ActivationViewModel
 import com.absenku.utils.DeviceIdHelper
 
 /**
@@ -20,7 +28,7 @@ import com.absenku.utils.DeviceIdHelper
 fun SplashScreen() {
     val context = LocalContext.current
     val vm: ActivationViewModel = hiltViewModel()
-    val state by vm.state.collectAsStateWithLifecycle()
+    val state by vm.uiState.collectAsStateWithLifecycle()
 
     if (state.deviceId.isBlank()) {
         // ensure device id is generated once
@@ -29,17 +37,17 @@ fun SplashScreen() {
 
     when {
         // show a tiny loading indicator while we determine activation
-        state.isLoading -> {
-            androidx.compose.material3.Surface(
-                modifier = androidx.compose.ui.Modifier.fillMaxSize(),
-                color = androidx.compose.ui.graphics.Color(0xFFE8F0FE)
+        state.isChecking -> {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = Color(0xFFE8F0FE)
             ) {
-                androidx.compose.material3.Box(
-                    modifier = androidx.compose.ui.Modifier.fillMaxSize(),
-                    contentAlignment = androidx.compose.ui.Alignment.Center
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    androidx.compose.material3.CircularProgressIndicator(
-                        color = androidx.compose.ui.graphics.Color(0xFF1A73E8)
+                    CircularProgressIndicator(
+                        color = Color(0xFF1A73E8)
                     )
                 }
             }

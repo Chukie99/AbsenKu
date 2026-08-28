@@ -47,7 +47,6 @@ fun ReportScreen(viewModel: ReportViewModel = hiltViewModel()) {
 
     var showPicker by remember { mutableStateOf(false) }
     var picked by remember { mutableStateOf(today) }
-    var datePicker by remember { mutableStateOf<androidx.compose.material3.DatePickerDialog?>(null) }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Laporan") }) },
@@ -70,16 +69,27 @@ fun ReportScreen(viewModel: ReportViewModel = hiltViewModel()) {
             )
             if (showPicker) {
                 val cal = Calendar.getInstance().apply { time = df.parse(picked) ?: Date() }
+                val datePickerState = rememberDatePickerState(
+                    initialSelectedDateMillis = cal.timeInMillis
+                )
                 DatePickerDialog(
-                    ctx,
-                    { _, y, m, d ->
-                        cal.set(y, m, d)
-                        picked = df.format(cal.time)
-                        viewModel.loadByDate(picked)
-                        showPicker = false
+                    onDismissRequest = { showPicker = false },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            datePickerState.selectedDateMillis?.let { millis ->
+                                val selectedCal = Calendar.getInstance().apply { timeInMillis = millis }
+                                picked = df.format(selectedCal.time)
+                                viewModel.loadByDate(picked)
+                            }
+                            showPicker = false
+                        }) { Text("OK") }
                     },
-                    cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)
-                ).show()
+                    dismissButton = {
+                        TextButton(onClick = { showPicker = false }) { Text("Batal") }
+                    }
+                ) {
+                    DatePicker(state = datePickerState)
+                }
             }
 
             Spacer(Modifier.height(12.dp))

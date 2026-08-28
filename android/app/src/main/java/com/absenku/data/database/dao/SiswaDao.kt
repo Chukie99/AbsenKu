@@ -32,4 +32,7 @@ interface SiswaDao {
 
     @Query("SELECT COUNT(*) FROM siswa WHERE is_active = 1 AND deleted_at IS NULL")
     suspend fun countActive(): Int
+
+    @Query("SELECT * FROM siswa ORDER BY nama")
+    suspend fun getAll(): List<Siswa>
 }

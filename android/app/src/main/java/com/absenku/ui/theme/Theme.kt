@@ -1,9 +1,9 @@
 package com.absenku.ui.theme
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.isSystemInDarkTheme
 
 /**
  * AbsenKu Theme — Material 3, blue-pastel Google palette.

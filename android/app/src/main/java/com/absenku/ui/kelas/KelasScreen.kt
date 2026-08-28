@@ -1,5 +1,6 @@
 package com.absenku.ui.kelas
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,11 +11,15 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.absenku.data.model.Kelas
@@ -26,7 +31,7 @@ import com.absenku.data.model.Kelas
 @Composable
 fun KelasScreen(viewModel: KelasViewModel = hiltViewModel()) {
     val s by viewModel.state.collectAsStateWithLifecycle()
-    var showAdd by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    var showAdd by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Data Kelas") }) },
@@ -64,9 +69,9 @@ private fun KelasRow(kelas: Kelas, onLongPress: (Kelas) -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddKelasDialog(onDismiss: () -> Unit, onConfirm: (String, String, String) -> Unit) {
-    var nama by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
-    var wali by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
-    var ta by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
+    var nama by remember { mutableStateOf("") }
+    var wali by remember { mutableStateOf("") }
+    var ta by remember { mutableStateOf("") }
     AlertDialog(onDismissRequest = onDismiss, title = { Text("Tambah Kelas") },
         text = {
             Column {

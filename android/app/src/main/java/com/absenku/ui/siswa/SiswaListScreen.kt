@@ -1,6 +1,7 @@
 package com.absenku.ui.siswa
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -16,11 +17,16 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -28,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
+import androidx.compose.ui.res.painterResource
 import com.absenku.data.model.Siswa
 
 /** SiswaListScreen — list, search, filter by kelas, soft-delete (long press). */
@@ -39,7 +46,7 @@ fun SiswaListScreen(
     viewModel: SiswaViewModel = hiltViewModel(),
 ) {
     val s by viewModel.state.collectAsStateWithLifecycle()
-    var expanded by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Data Siswa") }) },
@@ -96,8 +103,8 @@ private fun SiswaRow(
 ) {
     val painter = rememberAsyncImagePainter(
         model = siswa.foto,
-        placeholder = androidx.compose.ui.res.painterResource(0),
-        error = androidx.compose.ui.res.painterResource(0),
+        placeholder = painterResource(0),
+        error = painterResource(0),
     )
     Card(
         Modifier
@@ -120,7 +127,7 @@ private fun SiswaRow(
                         Image(painter = painter, contentDescription = "Foto ${siswa.nama}", modifier = Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)))
                     } else {
                         Canvas(Modifier.fillMaxSize()) {
-                            drawCircle(color = Color(0xFFE8F0FE), style = androidx.compose.ui.graphics.drawstyle.Fill)
+                            drawCircle(color = Color(0xFFE8F0FE), style = Fill)
                             val p = Path().apply {
                                 moveTo(size.minDimension / 2 - 10, size.minDimension / 2 + 6)
                                 lineTo(size.minDimension / 2 + 10, size.minDimension / 2 + 6)

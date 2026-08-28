@@ -85,7 +85,7 @@ class AbsenViewModel @Inject constructor(
             if (existing.isNotEmpty()) {
                 // update (overwrite) last occurrence + audit log
                 val old = existing.first()
-                repo.updateAbsensi(Absensi(id = old.id, siswa_id = old.siswaId, tanggal = today, waktuMasuk = old.waktuMasuk, waktuKeluar = if (absensiStatus=="Keluar") now else old.waktuKeluar, status = absensiStatus, mapelId = old.mapelId, createdAt = old.createdAt, updatedAt = System.currentTimeMillis()))
+                repo.updateAbsensi(Absensi(id = old.id, siswaId = old.siswaId, tanggal = today, waktuMasuk = old.waktuMasuk, waktuKeluar = if (absensiStatus=="Keluar") now else old.waktuKeluar, status = absensiStatus, mapelId = old.mapelId, createdAt = old.createdAt, updatedAt = System.currentTimeMillis()))
                 repo.logAudit(
                     com.absenku.data.model.AuditLog(tableName = "absensi", recordId = old.id, fieldName = "status",
                         oldValue = old.status, newValue = absensiStatus, changedBy = "HP-scan")
