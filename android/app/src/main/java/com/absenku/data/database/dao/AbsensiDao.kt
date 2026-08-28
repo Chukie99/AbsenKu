@@ -3,6 +3,11 @@ package com.absenku.data.database.dao
 import androidx.room.*
 import com.absenku.data.model.Absensi
 
+data class DailyCount(
+    @ColumnInfo(name = "status") val status: String,
+    @ColumnInfo(name = "count") val count: Int,
+)
+
 /** CRUD + lookup for Attendance records. */
 @Dao
 interface AbsensiDao {
@@ -19,7 +24,7 @@ interface AbsensiDao {
     suspend fun getAllDates(): List<String>
 
     @Query("SELECT status, COUNT(*) AS count FROM absensi WHERE tanggal = :tanggal GROUP BY status")
-    suspend fun dailySummary(tanggal: String): List<android.util.Pair<String, Int>>
+    suspend fun dailySummary(tanggal: String): List<DailyCount>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(absensi: Absensi): Long

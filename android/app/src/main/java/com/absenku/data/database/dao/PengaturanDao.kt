@@ -15,7 +15,7 @@ interface PengaturanDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(setting: Pengaturan)
 
-    @Query("INSERT OR REPLACE INTO pengaturan (`key`, value) VALUES (?, ?)")
+    @Query("INSERT OR REPLACE INTO pengaturan (`key`, value, updated_at) VALUES (:key, :value, CURRENT_TIMESTAMP)")
     suspend fun put(key: String, value: String?)
 
     @Update
