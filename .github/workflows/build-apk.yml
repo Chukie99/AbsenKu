@@ -41,19 +41,22 @@ jobs:
             -Dorg.gradle.jvmargs="-Xmx4096m -Dfile.encoding=UTF-8" \
             --no-daemon
 
+      - name: Find APK
+        run: find app/build/outputs -name "*.apk" -type f
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: absenku-apk
-          path: app/build/outputs/apk/release/*.apk
+          path: android/app/build/outputs/apk/release/*.apk
 
       - name: Release APK (on GitHub Release)
         if: github.event_name == 'release'
-        uses: actions/upload-release-asset@v1
+        uses: shogo82148/actions-upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: app/build/outputs/apk/release/app-release.apk
+          asset_path: android/app/build/outputs/apk/release/*.apk
           asset_name: AbsenKu-v1.0.0.apk
-          asset_content_type: application/vnd.android.package.archive
+          asset_content_type: application/vnd.android.package-archive
