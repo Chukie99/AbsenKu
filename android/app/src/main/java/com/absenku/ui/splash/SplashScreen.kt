@@ -1,7 +1,7 @@
 package com.absenku.ui.splash
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Box
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
@@ -14,6 +14,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.absenku.ui.AbsenNavHost
+import com.absenku.ui.activation.ActivationScreen
 import com.absenku.ui.activation.ActivationViewModel
 import com.absenku.utils.DeviceIdHelper
 

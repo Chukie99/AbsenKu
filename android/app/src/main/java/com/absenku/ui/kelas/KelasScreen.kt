@@ -54,7 +54,7 @@ fun KelasScreen(viewModel: KelasViewModel = hiltViewModel()) {
 
 @Composable
 private fun KelasRow(kelas: Kelas, onLongPress: (Kelas) -> Unit) {
-    Card(Modifier.fillMaxWidth().padding(8.dp).clickable({ /* noop */ }){}, shape = RoundedCornerShape(8.dp), elevation = CardDefaults.cardElevation(2.dp)) {
+    Card(Modifier.fillMaxWidth().padding(8.dp).clickable { }, shape = RoundedCornerShape(8.dp), elevation = CardDefaults.cardElevation(2.dp)) {
         Row(Modifier.padding(12.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column {
                 Text(kelas.nama, fontWeight = FontWeight.Bold)

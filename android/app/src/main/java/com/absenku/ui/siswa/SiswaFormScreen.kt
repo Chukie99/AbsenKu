@@ -100,7 +100,7 @@ fun SiswaFormScreen(
                 .fillMaxWidth()
         ) {
             // Foto picker
-            Box(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 if (fotoPath.isNotBlank()) {
                     Image(
                         painter = rememberAsyncImagePainter(fotoPath),
@@ -134,7 +134,7 @@ fun SiswaFormScreen(
                 )
                 DropdownMenu(expanded = openKelas, onDismissRequest = { openKelas = false }) {
                     kelasList.forEach { k ->
-                        DropdownMenuItem(onClick = { selectedKelas = k.id; openKelas = false }) { Text(k.nama) }
+                        DropdownMenuItem(text = { Text(k.nama) }, onClick = { selectedKelas = k.id; openKelas = false })
                     }
                 }
                 // make whole row clickable for dropdown

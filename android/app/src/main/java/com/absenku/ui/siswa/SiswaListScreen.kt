@@ -71,9 +71,9 @@ fun SiswaListScreen(
                     Icon(Icons.Default.ArrowDropDown, contentDescription = null)
                 }
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                    DropdownMenuItem(onClick = { viewModel.filterByKelas(null); expanded = false }) { Text("Semua Kelas") }
+                    DropdownMenuItem(text = { Text("Semua Kelas") }, onClick = { viewModel.filterByKelas(null); expanded = false })
                     s.allClasses.forEach { k ->
-                        DropdownMenuItem(onClick = { viewModel.filterByKelas(k.id); expanded = false }) { Text(k.nama) }
+                        DropdownMenuItem(text = { Text(k.nama) }, onClick = { viewModel.filterByKelas(k.id); expanded = false })
                     }
                 }
             }
@@ -126,17 +126,13 @@ private fun SiswaRow(
                     if (!siswa.foto.isNullOrEmpty()) {
                         Image(painter = painter, contentDescription = "Foto ${siswa.nama}", modifier = Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)))
                     } else {
-                        Canvas(Modifier.fillMaxSize()) {
-                            drawCircle(color = Color(0xFFE8F0FE), style = Fill)
-                            val p = Path().apply {
-                                moveTo(size.minDimension / 2 - 10, size.minDimension / 2 + 6)
-                                lineTo(size.minDimension / 2 + 10, size.minDimension / 2 + 6)
-                            }
-                            drawContext.canvas.nativeCanvas.apply {
-                                val txt = if (siswa.nama.isNotEmpty()) siswa.nama[0].toString() else "?"
-                                drawText(txt, (size.minDimension / 2 - 6).toFloat(), size.minDimension / 2 + 20,
-                                    android.text.TextPaint().apply { this.textAlign = android.text.Layout.Alignment.ALIGN_CENTER; this.textSize = 18f; this.color = android.graphics.Color.parseColor("#1A73E8") })
-                            }
+                        Box(Modifier.size(48.dp).clip(RoundedCornerShape(24.dp)).background(Color(0xFFE8F0FE)), contentAlignment = Alignment.Center) {
+                            Text(
+                                if (siswa.nama.isNotEmpty()) siswa.nama[0].toString() else "?",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF1A73E8),
+                            )
                         }
                     }
                 }
