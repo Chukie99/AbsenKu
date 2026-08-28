@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Splash theme (no action bar) -->
+    <style name="Theme.Absenku.Splash" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="windowBackground">@color/primaryLight</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+
+    <!-- Main app theme -->
+    <style name="Theme.Absenku" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorTertiary">@color/tertiary</item>
+        <item name="android:windowBackground">@color/background</item>
+    </style>
+</resources>

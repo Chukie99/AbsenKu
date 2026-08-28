@@ -1,0 +1,16 @@
+# Gradle
+.gradle/
+build/
+*/build/
+*.apk
+*.aab
+*.ap_
+
+# Local
+*.iml
+.idea/
+.gradle/
+local.properties
+
+# Secret
+*.keystore

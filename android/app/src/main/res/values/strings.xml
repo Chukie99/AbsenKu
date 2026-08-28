@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AbsenKu</string>
+    <string name="app_short_name">AbsenKu</string>
+    <string name="error_msg">Terjadi kesalahan</string>
+    <string name="loading">Memuat…</string>
+    <string name="save">Simpan</string>
+    <string name="cancel">Batal</string>
+    <string name="delete">Hapus</string>
+    <string name="edit">Edit</string>
+    <string name="add">Tambah</string>

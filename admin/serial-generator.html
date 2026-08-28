@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AbsenKu — Serial Number Generator</title>
+  <style>
+    :root {
+      --primary: #1A73E8;
+      --primary-light: #E8F0FE;
+      --secondary: #34A853;
+      --tertiary: #FBBC04;
+      --surface: #ffffff;
+      --background: #F5F7FA;
+      --text-primary: #1A1A1A;
+      --text-secondary: #5F6368;
+      --error: #D93025;
+      --border: #D1D5DB;
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; margin:0; padding:0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--background);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 24px;
+    }
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      padding: 24px;
+      max-width: 460px;
+      width: 100%;
+    }
+    h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+    p.lead { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+    label { font-size: 13px; font-weight: 600; display:block; margin-bottom:6px; }
+    input[type=text] {
+      width: 100%; padding:12px 14px; border:1.5px solid var(--border);
+      border-radius: 8px; font-size:15px; font-family: 'SFMono-Regular',monospace;
+    }
+    input[type=text]:focus { outline:none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+    .row { display:flex; gap:12px; margin-top:18px; align-items:end; }
+    button { flex:1; padding:12px 16px; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer; transition:.15s; }
+    button:disabled { opacity:.5; cursor:not-allowed; }
+    .btn-primary { background:var(--primary); color:#fff; }
+    .btn-primary:hover:not(:disabled){ background:#0f57d0; }
+    .btn-copy { background:var(--secondary); color:#fff; }
+    .btn-copy:hover{ background:#2d8e42; }
+    .output { margin-top:18px; padding:16px; background:var(--primary-light); border-radius:8px; border:1.5px dashed var(--border); }
+    .output .label { font-size:12px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:.5px; }
+    .output .value { font-size:22px; font-family: 'SFMono-Regular',monospace; font-weight:700; color:var(--primary); letter-spacing:2px; margin-top:4px; word-break:break-all; }
+    .history { margin-top:22px; }
+    .history h2 { font-size:15px; font-weight:600; margin-bottom:10px; }
+    .history-item { font-size:13px; padding:10px 12px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; }
+    .history-item:last-child { border-bottom:none; }
+    .history-item .date { color:var(--text-secondary); font-size:12px; }
+    .history-item .serial { font-family:monospace; font-weight:600; color:var(--primary); }
+    .empty-hint { font-size:13px; color:var(--text-secondary); }
+    .error-msg { color:var(--error); font-size:13px; margin-top:8px; min-height:18px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>AbsenKu Generator</h1>
+    <p class="lead">Generate nomor seri (serial) dari Device ID guru.</p>
+
+    <label for="deviceId">Device ID (dari HP siswa/guru)</label>
+    <input type="text" id="deviceId" placeholder="Contoh: A7K3P9Q2-B4X9" maxlength="64" />
+
+    <div class="row">
+      <button id="btnGenerate" class="btn-primary" disabled>Buat Serial</button>
+      <button id="btnCopy" class="btn-copy" disabled>Copy</button>
+    </div>
+    <div class="error-msg" id="errorMsg"></div>
+
+    <div class="output" id="outputBox" style="display:none;">
+      <div class="label">Serial Number</div>
+      <div class="value" id="output"></div>
+    </div>
+
+    <div class="history">
+      <h2>Riwayat (lokal di browser ini)</h2>
+      <div id="historyList">
+        <div class="empty-hint">Belum ada riwayat.</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const SALT = "AbsenKuSalt2025";
+
+  // SHA256 → hex string
+  async function sha256(str) {
+    const data = new TextEncoder().encode(str);
+    const hashBuf = await crypto.subHash(data);
+    return Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+
+  // serial = first 8 chars of hex (lowercase) → uppercase
+  async function generateSerial(deviceId) {
+    const hash = await sha256(deviceId + SALT);
+    return hash.substring(0, 8).toUpperCase();
+  }
+
+  const devInput = document.getElementById('deviceId');
+  const btnGen = document.getElementById('btnGenerate');
+  const btnCopy = document.getElementById('btnCopy');
+  const outBox = document.getElementById('outputBox');
+  const outVal = document.getElementById('output');
+  const errMsg = document.getElementById('errorMsg');
+  const histList = document.getElementById('historyList');
+
+  function saveHistory(deviceId, serial) {
+    const now = new Date().toLocaleString('id-ID');
+    const item = { deviceId, serial, date: now };
+    let hist = JSON.parse(localStorage.getItem('absenku_history') || '[]');
+    hist.unshift(item);
+    if (hist.length > 50) hist = hist.slice(0,50);
+    localStorage.setItem('absenku_history', JSON.stringify(hist));
+    renderHistory(hist);
+  }
+
+  function renderHistory(hist) {
+    histList.innerHTML = '';
+    if (hist.length === 0) {
+      histList.innerHTML = '<div class="empty-hint">Belum ada riwayat.</div>';
+      return;
+    }
+    hist.forEach(h => {
+      const div = document.createElement('div');
+      div.className = 'history-item';
+      div.innerHTML = '<div><div style="font-weight:600">'+h.deviceId+'</div><div class="date">'+h.date+'</div></div><div class="serial">'+h.serial+'</div>';
+      histList.appendChild(div);
+    });
+  }
+
+  // init
+  window.addEventListener('DOMContentLoaded', () => {
+    renderHistory(JSON.parse(localStorage.getItem('absenku_history') || '[]'));
+  });
+
+  devInput.addEventListener('input', () => {
+    errMsg.textContent = '';
+    btnGen.disabled = devInput.value.trim().length < 1;
+  });
+
+  btnGen.addEventListener('click', async () => {
+    const dev = devInput.value.trim();
+    if (!dev) { errMsg.textContent = 'Device ID tidak boleh kosong.'; return; }
+    errMsg.textContent = 'Sedang generate...';
+    try {
+      const serial = await generateSerial(dev);
+      outVal.textContent = serial;
+      outBox.style.display = 'block';
+      btnCopy.disabled = false;
+      btnGen.disabled = true;
+      errMsg.textContent = '';
+      saveHistory(dev, serial);
+    } catch(e) {
+      errMsg.textContent = 'Gagal generate serial.';
+    }
+  });
+
+  btnCopy.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(outVal.textContent);
+      // visual feedback
+      const old = btnCopy.textContent;
+      btnCopy.textContent = '✓ Copied';
+      setTimeout(()=>{ btnCopy.textContent = old; }, 1500);
+    } catch(e) {
+      // fallback: select + execCommand
+      const el = document.createElement('textarea');
+      el.value = outVal.textContent;
+      document.body.appendChild(el); el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    }
+  });
+</script>
+</body>
+</html>
