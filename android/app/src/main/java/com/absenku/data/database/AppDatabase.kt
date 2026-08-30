@@ -46,6 +46,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java, "absenku.db"
                 ).addMigrations(MIGRATION_1_2)
+                 .fallbackToDestructiveMigration()
                  .build()
                  .also { INSTANCE = it }
             }

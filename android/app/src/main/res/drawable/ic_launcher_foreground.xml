@@ -1,19 +1,48 @@
-<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Blue triangle (main icon shape) -->
+    <!-- Blue background circle -->
     <path
-        android:fillColor="#1A73E8"
-        android:pathData="M54,18 L90,84 L18,84 Z" />
-    <!-- Light inner triangle -->
+        android:fillColor="#2563EB"
+        android:pathData="M0,0h108v108H0z"/>
+    <!-- Clipboard body (white) -->
     <path
-        android:fillColor="#E8F0FE"
-        android:pathData="M54,32 L72,60 L44,60 L54,32 Z" />
-    <!-- Green bars (lines/text象征) -->
+        android:fillColor="#FFFFFF"
+        android:pathData="M36,28 L72,28 Q74,28 74,30 L74,80 Q74,82 72,82 L36,82 Q34,82 34,80 L34,30 Q34,28 36,28z"/>
+    <!-- Clipboard clip (dark blue) -->
     <path
-        android:fillColor="#34A853"
-        android:pathData="M64,68 L44,68 L44,72 L64,72 L64,68 Z M64,76 L44,76 L44,80 L64,80 L64,76 Z" />
+        android:fillColor="#1E40AF"
+        android:pathData="M44,24 L64,24 Q66,24 66,26 L66,34 Q66,36 64,36 L44,36 Q42,36 42,34 L42,26 Q42,24 44,24z"/>
+    <!-- Checkmark 1 (green) -->
+    <path
+        android:fillColor="#25D366"
+        android:pathData="M38,42 L48,42 Q50,42 50,44 L50,54 Q50,56 48,56 L38,56 Q36,56 36,54 L36,44 Q36,42 38,42z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:pathData="M38,49 L42,53 L50,44"/>
+    <!-- Checkmark 2 (green) -->
+    <path
+        android:fillColor="#25D366"
+        android:pathData="M38,58 L48,58 Q50,58 50,60 L50,70 Q50,72 48,72 L38,72 Q36,72 36,70 L36,60 Q36,58 38,58z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:pathData="M38,65 L42,69 L50,60"/>
+    <!-- Line 1 (text placeholder) -->
+    <path
+        android:fillColor="#CBD5E1"
+        android:pathData="M54,44 L70,44 Q71,44 71,45 L71,53 Q71,54 70,54 L54,54 Q53,54 53,53 L53,45 Q53,44 54,44z"/>
+    <!-- Line 2 (text placeholder) -->
+    <path
+        android:fillColor="#CBD5E1"
+        android:pathData="M54,60 L70,60 Q71,60 71,61 L71,69 Q71,70 70,70 L54,70 Q53,70 53,69 L53,61 Q53,60 54,60z"/>
+    <!-- Bottom bar -->
+    <path
+        android:fillColor="#DBEAFE"
+        android:pathData="M38,76 L70,76 Q71,76 71,77 L71,79 Q71,80 70,80 L38,80 Q37,80 37,79 L37,77 Q37,76 38,76z"/>
 </vector>
