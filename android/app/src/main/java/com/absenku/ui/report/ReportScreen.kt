@@ -76,7 +76,10 @@ fun ReportScreen(viewModel: ReportViewModel = hiltViewModel()) {
             }
 
             when (selectedTab) {
-                0 -> AbsensiTab(s, picked, showPicker, viewModel, df) { showPicker = it; picked = df.format(Calendar.getInstance().apply { timeInMillis = it }.time) }
+                0 -> AbsensiTab(s, picked, showPicker, viewModel, df) { millis ->
+                    showPicker = false
+                    picked = df.format(Calendar.getInstance().apply { timeInMillis = millis }.time)
+                }
                 1 -> RankingTab(s)
             }
         }
