@@ -114,6 +114,9 @@ dependencies {
     // Gson (sync JSON + CSV export fallback)
     implementation "com.google.code.gson:gson:2.10.1"
 
+    // ZXing QR Code generation
+    implementation "com.google.zxing:core:3.5.3"
+
     // Apache Commons CSV (Maven Central — no JitPack)
     implementation "org.apache.commons:commons-csv:1.10.0"
 

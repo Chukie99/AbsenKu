@@ -2,10 +2,13 @@ package com.absenku.ui.dashboard
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -14,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -23,11 +27,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.absenku.utils.DateFormatter
 
-/** Dashboard: today's summary counts + weekly bar chart + real-time clock. */
+/** Dashboard: today's summary counts + weekly bar chart + quick-access menu tiles. */
 @Composable
 fun DashboardScreen(
     modifier: Modifier = Modifier,
     onNavigateToAbsen: () -> Unit = {},
+    onNavigateToSiswa: () -> Unit = {},
+    onNavigateToPoinDisiplin: () -> Unit = {},
+    onNavigateToJadwal: () -> Unit = {},
+    onNavigateToNilai: () -> Unit = {},
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -65,6 +73,20 @@ fun DashboardScreen(
 
         Spacer(Modifier.height(8.dp))
 
+        // Quick access menu tiles
+        Text("Menu Cepat", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, modifier = Modifier.padding(top = 16.dp, bottom = 8.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            MenuTile("Data Siswa", Icons.Default.People, Color(0xFF1A73E8), Modifier.weight(1f).clickable { onNavigateToSiswa() })
+            MenuTile("Absen", Icons.Default.EditNote, Color(0xFF34A853), Modifier.weight(1f).clickable { onNavigateToAbsen() })
+            MenuTile("Poin Disiplin", Icons.Default.EmojiEvents, Color(0xFFFBBC04), Modifier.weight(1f).clickable { onNavigateToPoinDisiplin() })
+        }
+        Spacer(Modifier.height(8.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            MenuTile("Jadwal", Icons.Default.Schedule, Color(0xFF9C27B0), Modifier.weight(1f).clickable { onNavigateToJadwal() })
+            MenuTile("Nilai", Icons.Default.Grade, Color(0xFF00BCD4), Modifier.weight(1f).clickable { onNavigateToNilai() })
+            Spacer(Modifier.weight(1f)) // empty slot for balance
+        }
+
         // Weekly chart
         if (state.weekly.isNotEmpty()) {
             Text("Kehadiran 7 Hari Terakhir", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, modifier = Modifier.padding(top = 16.dp, bottom = 8.dp))
@@ -74,8 +96,26 @@ fun DashboardScreen(
 }
 
 @Composable
+private fun MenuTile(title: String, icon: ImageVector, color: Color, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier.height(80.dp),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(2.dp),
+    ) {
+        Column(
+            Modifier.fillMaxSize().padding(8.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Icon(icon, contentDescription = title, tint = color, modifier = Modifier.size(28.dp))
+            Spacer(Modifier.height(4.dp))
+            Text(title, fontSize = 11.sp, fontWeight = FontWeight.Medium, color = Color(0xFF3C4043))
+        }
+    }
+}
+
+@Composable
 private fun LazyRowOrGrid(cards: List<Triple<String, Int, Color>>) {
-    val ctx = LocalContext
     Row(
         Modifier
             .fillMaxWidth()

@@ -160,3 +160,38 @@ data class SyncLog(
     @ColumnInfo(name = "device_id") val deviceId: String? = null,
     @ColumnInfo(name = "created_at") val createdAt: Long = System.currentTimeMillis(),
 )
+
+/**
+ * PoinDisiplin — discipline points (pelanggaran / prestasi).
+ * kategori ∈ Positif|Negatif
+ */
+@Entity(tableName = "poin_disiplin")
+data class PoinDisiplin(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    @ColumnInfo(name = "siswa_id") val siswaId: Long,
+    @ColumnInfo(name = "tanggal") val tanggal: String,             // "yyyy-MM-dd"
+    @ColumnInfo(name = "kategori") val kategori: String,           // "Positif" | "Negatif"
+    @ColumnInfo(name = "poin") val poin: Int = 0,
+    @ColumnInfo(name = "keterangan") val keterangan: String? = null,
+    @ColumnInfo(name = "diberikan_oleh") val diberikanOleh: String? = null,
+    @ColumnInfo(name = "created_at") val createdAt: Long = System.currentTimeMillis(),
+    @ColumnInfo(name = "updated_at") val updatedAt: Long = System.currentTimeMillis(),
+)
+
+/**
+ * JadwalPelajaran — weekly class schedule per kelas + mapel.
+ */
+@Entity(tableName = "jadwal_pelajaran")
+data class JadwalPelajaran(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    @ColumnInfo(name = "kelas_id") val kelasId: Long,
+    @ColumnInfo(name = "mapel_id") val mapelId: Long,
+    @ColumnInfo(name = "hari") val hari: String,                    // "Senin".."Minggu"
+    @ColumnInfo(name = "jam_mulai") val jamMulai: String,          // "HH:mm"
+    @ColumnInfo(name = "jam_selesai") val jamSelesai: String,      // "HH:mm"
+    @ColumnInfo(name = "guru") val guru: String? = null,
+    @ColumnInfo(name = "is_active") val isActive: Boolean = true,
+    @ColumnInfo(name = "deleted_at") val deletedAt: Long? = null,
+    @ColumnInfo(name = "created_at") val createdAt: Long = System.currentTimeMillis(),
+    @ColumnInfo(name = "updated_at") val updatedAt: Long = System.currentTimeMillis(),
+)

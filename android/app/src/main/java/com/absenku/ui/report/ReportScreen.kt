@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -36,7 +37,7 @@ fun ReportScreen(viewModel: ReportViewModel = hiltViewModel()) {
     val ctx = LocalContext.current
     val df = SimpleDateFormat("yyyy-MM-dd", Locale.US)
     val today = df.format(Date())
-    LaunchedEffect(Unit) { viewModel.loadByDate(today) }
+    LaunchedEffect(Unit) { viewModel.loadByDate(today); viewModel.loadRanking() }
 
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri: Uri? ->
         uri?.let {
@@ -58,69 +59,136 @@ fun ReportScreen(viewModel: ReportViewModel = hiltViewModel()) {
             }
         }
     ) { padding ->
-        Column(Modifier.padding(padding).fillMaxSize().padding(12.dp)) {
-            // Date filter
-            OutlinedTextField(
-                value = picked,
-                onValueChange = {}, readOnly = true,
-                label = { Text("Tanggal") },
-                trailingIcon = { Icon(Icons.Default.DateRange, contentDescription = null, Modifier.clickable { showPicker = true }) },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            if (showPicker) {
-                val cal = Calendar.getInstance().apply { time = df.parse(picked) ?: Date() }
-                val datePickerState = rememberDatePickerState(
-                    initialSelectedDateMillis = cal.timeInMillis
-                )
-                DatePickerDialog(
-                    onDismissRequest = { showPicker = false },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            datePickerState.selectedDateMillis?.let { millis ->
-                                val selectedCal = Calendar.getInstance().apply { timeInMillis = millis }
-                                picked = df.format(selectedCal.time)
-                                viewModel.loadByDate(picked)
-                            }
-                            showPicker = false
-                        }) { Text("OK") }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { showPicker = false }) { Text("Batal") }
+        Column(Modifier.padding(padding).fillMaxSize()) {
+            // Tab row: Absensi + Ranking
+            var selectedTab by remember { mutableIntStateOf(0) }
+            TabRow(selectedTabIndex = selectedTab) {
+                Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }) {
+                    Text("Absensi", modifier = Modifier.padding(12.dp))
+                }
+                Tab(selected = selectedTab == 1, onClick = { selectedTab = 1; viewModel.loadRanking() }) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Leaderboard, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Text("Ranking", modifier = Modifier.padding(12.dp))
                     }
-                ) {
-                    DatePicker(state = datePickerState)
                 }
             }
 
-            Spacer(Modifier.height(12.dp))
-            Text(DateFormatter.formatDate(System.currentTimeMillis()), fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            when (selectedTab) {
+                0 -> AbsensiTab(s, picked, showPicker, viewModel, df) { showPicker = it; picked = df.format(Calendar.getInstance().apply { timeInMillis = it }.time) }
+                1 -> RankingTab(s)
+            }
+        }
+    }
+}
 
-            if (s.isLoading) {
-                Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Color(0xFF1A73E8))
-                }
-            } else if (s.todayAbsensi.isEmpty()) {
-                Text("Belum ada absen untuk tanggal ${picked}.", color = Color(0xFF5F6368))
-            } else {
-                LazyColumn {
-                    items(s.todayAbsensi, key = { it.id }) { a ->
-                        Card(Modifier.fillMaxWidth().padding(vertical = 4.dp), shape = RoundedCornerShape(8.dp)) {
-                            Column(Modifier.padding(12.dp)) {
-                                Text("${a.waktuMasuk ?: "-"} · ${a.status}", fontWeight = FontWeight.Bold)
-                                Text("Siswa ID: ${a.siswaId} | Mapel: ${a.mapelId}", fontSize = 12.sp, color = Color(0xFF5F6368))
-                            }
+@Composable
+private fun AbsensiTab(
+    s: ReportUiState,
+    picked: String,
+    showPicker: Boolean,
+    viewModel: ReportViewModel,
+    df: SimpleDateFormat,
+    onDatePicked: (Long) -> Unit,
+) {
+    val datePickerState = rememberDatePickerState()
+    Column(Modifier.fillMaxSize().padding(12.dp)) {
+        OutlinedTextField(
+            value = picked, onValueChange = {}, readOnly = true,
+            label = { Text("Tanggal") },
+            trailingIcon = { Icon(Icons.Default.DateRange, contentDescription = null, Modifier.clickable { }) },
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        if (showPicker) {
+            DatePickerDialog(
+                onDismissRequest = { },
+                confirmButton = {
+                    TextButton(onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            onDatePicked(millis)
+                            viewModel.loadByDate(df.format(java.util.Date(millis)))
+                        }
+                    }) { Text("OK") }
+                },
+                dismissButton = { TextButton(onClick = { }) { Text("Batal") } }
+            ) { DatePicker(state = datePickerState) }
+        }
+
+        Spacer(Modifier.height(12.dp))
+        Text(DateFormatter.formatDate(System.currentTimeMillis()), fontWeight = FontWeight.Bold, fontSize = 15.sp)
+
+        if (s.isLoading) {
+            Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = Color(0xFF1A73E8))
+            }
+        } else if (s.todayAbsensi.isEmpty()) {
+            Text("Belum ada absen untuk tanggal ${picked}.", color = Color(0xFF5F6368))
+        } else {
+            LazyColumn {
+                items(s.todayAbsensi, key = { it.id }) { a ->
+                    Card(Modifier.fillMaxWidth().padding(vertical = 4.dp), shape = RoundedCornerShape(8.dp)) {
+                        Column(Modifier.padding(12.dp)) {
+                            Text("${a.waktuMasuk ?: "-"} · ${a.status}", fontWeight = FontWeight.Bold)
+                            Text("Siswa ID: ${a.siswaId} | Mapel: ${a.mapelId}", fontSize = 12.sp, color = Color(0xFF5F6368))
                         }
                     }
                 }
             }
+        }
 
-            Text("Riwayat Sync", fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 12.dp, bottom = 6.dp))
-            LazyColumn(Modifier.weight(1f)) {
-                items(s.syncLogs, key = { it.id }) { log: SyncLog ->
-                    Card(Modifier.fillMaxWidth().padding(vertical = 2.dp), shape = RoundedCornerShape(6.dp), elevation = CardDefaults.cardElevation(1.dp)) {
-                        Column(Modifier.padding(10.dp)) {
-                            Text(log.type ?: "?", fontWeight = FontWeight.Medium, fontSize = 13.sp)
-                            Text(log.message ?: "", fontSize = 11.sp, color = Color(0xFF5F6368))
+        Text("Riwayat Sync", fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 12.dp, bottom = 6.dp))
+        LazyColumn(Modifier.weight(1f)) {
+            items(s.syncLogs, key = { it.id }) { log: SyncLog ->
+                Card(Modifier.fillMaxWidth().padding(vertical = 2.dp), shape = RoundedCornerShape(6.dp), elevation = CardDefaults.cardElevation(1.dp)) {
+                    Column(Modifier.padding(10.dp)) {
+                        Text(log.type ?: "?", fontWeight = FontWeight.Medium, fontSize = 13.sp)
+                        Text(log.message ?: "", fontSize = 11.sp, color = Color(0xFF5F6368))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RankingTab(s: ReportUiState) {
+    Column(Modifier.fillMaxSize().padding(12.dp)) {
+        Text("Ranking Siswa Berdasarkan Poin Disiplin", fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.padding(bottom = 8.dp))
+
+        if (s.rankingPoin.isEmpty()) {
+            Text("Belum ada data poin disiplin.", color = Color(0xFF5F6368))
+        } else {
+            LazyColumn {
+                items(s.rankingPoinIndexed, key = { it.first }) { (rank, item) ->
+                    val namaSiswa = s.allSiswaMap[item.siswaId]?.nama ?: "Siswa #${item.siswaId}"
+                    Card(
+                        Modifier.fillMaxWidth().padding(vertical = 3.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = when (rank) {
+                                1 -> Color(0xFFFFF3E0) // gold-ish
+                                2 -> Color(0xFFF3E5F5) // silver-ish
+                                3 -> Color(0xFFE8F5E9) // bronze-ish
+                                else -> MaterialTheme.colorScheme.surface
+                            }
+                        )
+                    ) {
+                        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text("#$rank", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = when(rank) {
+                                1 -> Color(0xFFFF9800)
+                                2 -> Color(0xFF9C27B0)
+                                3 -> Color(0xFF4CAF50)
+                                else -> Color(0xFF5F6368)
+                            }, modifier = Modifier.width(40.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text(namaSiswa, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                            }
+                            Column(horizontalAlignment = Alignment.End) {
+                                val net = item.netPoin
+                                Text("${if (net >= 0) "+" else ""}$net", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = if (net >= 0) Color(0xFF34A853) else Color(0xFFD93025))
+                                Text("poin", fontSize = 10.sp, color = Color(0xFF5F6368))
+                            }
                         }
                     }
                 }

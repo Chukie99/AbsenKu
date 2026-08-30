@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -19,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -28,14 +30,17 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.absenku.data.model.Kelas
 import com.absenku.data.model.Siswa
+import com.absenku.utils.QrCodeGenerator
 
 /**
  * SiswaFormScreen — add new or edit existing student.
- * If siswa == null → insert mode; else edit mode.
+ * If siswaId == 0 → insert mode; else edit mode (loaded from DB).
+ * Includes QR code preview for existing students.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SiswaFormScreen(
+    siswaId: Long = 0L,
     siswa: Siswa? = null,
     kelasList: List<Kelas> = emptyList(),
     onSaved: () -> Unit,
@@ -43,19 +48,33 @@ fun SiswaFormScreen(
     viewModel: SiswaViewModel = hiltViewModel(),
 ) {
     val ctx = LocalContext.current
-    var nama by remember { mutableStateOf(siswa?.nama ?: "") }
-    var nis by remember { mutableStateOf(siswa?.nis ?: "") }
-    var alamat by remember { mutableStateOf(siswa?.alamat ?: "") }
-    var noHp by remember { mutableStateOf(siswa?.noHpOrtu ?: "") }
-    var tglLahir by remember { mutableStateOf(siswa?.tanggalLahir ?: "") }
-    var selectedKelas by remember { mutableStateOf(siswa?.kelasId ?: 0L) }
+    var loadedSiswa by remember { mutableStateOf(siswa) }
+    var isLoaded by remember { mutableStateOf(false) }
+
+    // Load siswa by ID if not provided directly
+    LaunchedEffect(siswaId) {
+        if (siswaId > 0 && siswa == null && !isLoaded) {
+            viewModel.loadSiswaById(siswaId) { loadedSiswa = it; isLoaded = true }
+        } else {
+            isLoaded = true
+        }
+    }
+
+    val currentSiswa = loadedSiswa
+
+    var nama by remember(currentSiswa) { mutableStateOf(currentSiswa?.nama ?: "") }
+    var nis by remember(currentSiswa) { mutableStateOf(currentSiswa?.nis ?: "") }
+    var alamat by remember(currentSiswa) { mutableStateOf(currentSiswa?.alamat ?: "") }
+    var noHp by remember(currentSiswa) { mutableStateOf(currentSiswa?.noHpOrtu ?: "") }
+    var tglLahir by remember(currentSiswa) { mutableStateOf(currentSiswa?.tanggalLahir ?: "") }
+    var selectedKelas by remember(currentSiswa) { mutableStateOf(currentSiswa?.kelasId ?: 0L) }
     var openKelas by remember { mutableStateOf(false) }
-    var fotoPath by remember { mutableStateOf(siswa?.foto ?: "") }
+    var fotoPath by remember(currentSiswa) { mutableStateOf(currentSiswa?.foto ?: "") }
+    var showQr by remember { mutableStateOf(false) }
 
     val pickImage = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let {
             val bmp = com.absenku.utils.ImageCompressor.uriToBitmap(ctx, uri)
-            // save scaled
             val tahun = "2025/2026"
             val path = com.absenku.utils.ImageCompressor.saveStudentPhoto(
                 ctx, bmp!!, tahun, selectedKelas, nis.ifEmpty { "temp_${System.currentTimeMillis()}" }
@@ -64,16 +83,30 @@ fun SiswaFormScreen(
         }
     }
 
+    // QR code bitmap for existing siswa
+    val qrBitmap = remember(currentSiswa) {
+        if (currentSiswa != null && currentSiswa.nis.isNotBlank()) {
+            QrCodeGenerator.generate(QrCodeGenerator.studentQrData(currentSiswa.nis, currentSiswa.nama, currentSiswa.kelasId))
+        } else null
+    }
+
+    if (!isLoaded && siswaId > 0) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = Color(0xFF1A73E8))
+        }
+        return
+    }
+
     Scaffold(
-        topBar = { TopAppBar(title = { Text(if (siswa == null) "Tambah Siswa" else "Edit Siswa") }) },
+        topBar = { TopAppBar(title = { Text(if (currentSiswa == null) "Tambah Siswa" else "Edit Siswa") }) },
         floatingActionButton = {
             FloatingActionButton(onClick = {
                 if (nis.isBlank() || nama.isBlank()) {
-                    onSaved() // caller shows error
+                    onSaved()
                     return@FloatingActionButton
                 }
                 val siswaData = Siswa(
-                    id = siswa?.id ?: 0,
+                    id = currentSiswa?.id ?: 0,
                     nis = nis,
                     nama = nama,
                     kelasId = selectedKelas,
@@ -82,7 +115,7 @@ fun SiswaFormScreen(
                     noHpOrtu = noHp.ifBlank { null },
                     tanggalLahir = tglLahir.ifBlank { null },
                 )
-                if (siswa == null) {
+                if (currentSiswa == null) {
                     viewModel.addSiswa(siswaData) { onSaved() }
                 } else {
                     viewModel.updateSiswa(siswaData) { onSaved() }
@@ -137,7 +170,6 @@ fun SiswaFormScreen(
                         DropdownMenuItem(text = { Text(k.nama) }, onClick = { selectedKelas = k.id; openKelas = false })
                     }
                 }
-                // make whole row clickable for dropdown
                 Spacer(Modifier.fillMaxSize().clickable { openKelas = true })
             }
             Spacer(Modifier.height(8.dp))
@@ -147,6 +179,34 @@ fun SiswaFormScreen(
             OutlinedTextField(value = alamat, onValueChange = { alamat = it }, label = { Text("Alamat") }, singleLine = true, modifier = Modifier.fillMaxWidth())
             Spacer(Modifier.height(8.dp))
             OutlinedTextField(value = noHp, onValueChange = { noHp = it }, label = { Text("No HP Orang Tua") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+
+            // QR Code section
+            if (currentSiswa != null && qrBitmap != null) {
+                Spacer(Modifier.height(16.dp))
+                Card(
+                    Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    elevation = CardDefaults.cardElevation(2.dp),
+                ) {
+                    Column(Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("QR Code Siswa", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                        Spacer(Modifier.height(8.dp))
+                        if (showQr) {
+                            Image(
+                                bitmap = qrBitmap.asImageBitmap(),
+                                contentDescription = "QR Code ${currentSiswa.nama}",
+                                modifier = Modifier.size(200.dp),
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(currentSiswa.nis, fontSize = 12.sp, color = Color(0xFF5F6368))
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        OutlinedButton(onClick = { showQr = !showQr }) {
+                            Text(if (showQr) "Sembunyikan QR" else "Tampilkan QR Code")
+                        }
+                    }
+                }
+            }
         }
     }
 }

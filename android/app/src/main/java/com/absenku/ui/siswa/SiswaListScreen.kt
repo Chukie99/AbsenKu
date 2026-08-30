@@ -1,6 +1,8 @@
 package com.absenku.ui.siswa
 
-import androidx.compose.foundation.Canvas
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -12,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
@@ -23,11 +26,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,7 +38,7 @@ import coil.compose.rememberAsyncImagePainter
 import androidx.compose.ui.res.painterResource
 import com.absenku.data.model.Siswa
 
-/** SiswaListScreen — list, search, filter by kelas, soft-delete (long press). */
+/** SiswaListScreen — list, search, filter by kelas, soft-delete, CSV import. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SiswaListScreen(
@@ -47,16 +48,45 @@ fun SiswaListScreen(
 ) {
     val s by viewModel.state.collectAsStateWithLifecycle()
     var expanded by remember { mutableStateOf(false) }
+    val ctx = LocalContext.current
+
+    val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let { viewModel.importCsv(ctx, it) }
+    }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Data Siswa") }) },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAdd, containerColor = Color(0xFF1A73E8)) {
-                Icon(Icons.Default.Add, contentDescription = null, tint = Color.White)
+            Column(horizontalAlignment = Alignment.End) {
+                // Import CSV FAB
+                SmallFloatingActionButton(
+                    onClick = { importLauncher.launch(arrayOf("text/csv", "text/comma-separated-values", "text/*")) },
+                    containerColor = Color(0xFF34A853),
+                    modifier = Modifier.padding(bottom = 12.dp)
+                ) {
+                    Icon(Icons.Default.FileUpload, contentDescription = "Import CSV", tint = Color.White)
+                }
+                FloatingActionButton(onClick = onAdd, containerColor = Color(0xFF1A73E8)) {
+                    Icon(Icons.Default.Add, contentDescription = null, tint = Color.White)
+                }
             }
         }
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
+            // Import result snackbar
+            s.importResult?.let { result ->
+                Card(
+                    Modifier.fillMaxWidth().padding(8.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = CardDefaults.cardColors(containerColor = if (result.startsWith("Gagal")) Color(0xFFFDECEA) else Color(0xFFE6F4EA))
+                ) {
+                    Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(result, modifier = Modifier.weight(1f), fontSize = 12.sp)
+                        TextButton(onClick = { viewModel.clearImportResult() }) { Text("OK") }
+                    }
+                }
+            }
+
             // Search + class filter
             Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(

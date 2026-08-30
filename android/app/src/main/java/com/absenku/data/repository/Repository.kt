@@ -2,12 +2,13 @@ package com.absenku.data.repository
 
 import com.absenku.data.database.AppDatabase
 import com.absenku.data.model.*
+import com.absenku.data.database.dao.SiswaPoinRanking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 /**
  * Repository — single access point for all data operations.
- * Uses the singleton AppDatabase instance (same pattern as KasirPro).
+ * Uses the singleton AppDatabase instance.
  */
 class Repository private constructor(private val db: AppDatabase) {
 
@@ -34,7 +35,7 @@ class Repository private constructor(private val db: AppDatabase) {
 
     // ── ABSENSI ──
     suspend fun getByDateAbsensi(tanggal: String): List<Absensi> = db.absensiDao().getByDate(tanggal)
-    suspend fun getAbsensiByDate(tanggal: String): List<Absensi> = db.absensiDao().getByDate(tanggal)  // alias
+    suspend fun getAbsensiByDate(tanggal: String): List<Absensi> = db.absensiDao().getByDate(tanggal)
     suspend fun getBySiswaAndDate(siswaId: Long, tanggal: String) = db.absensiDao().getBySiswaAndDate(siswaId, tanggal)
     suspend fun getAbsensiBySiswa(id: Long): List<Absensi> = db.absensiDao().getBySiswa(id)
     suspend fun addAbsensi(absensi: Absensi): Long = db.absensiDao().insert(absensi)
@@ -43,8 +44,14 @@ class Repository private constructor(private val db: AppDatabase) {
 
     // ── NILAI ──
     suspend fun getNilaiBySiswaMapel(siswaId: Long, mapelId: Long): List<Nilai> = db.nilaiDao().getBySiswaMapel(siswaId, mapelId)
+    suspend fun getNilaiBySiswa(siswaId: Long): List<Nilai> = db.nilaiDao().getBySiswa(siswaId)
+    suspend fun getNilaiByMapel(mapelId: Long): List<Nilai> = db.nilaiDao().getByMapel(mapelId)
     suspend fun addNilai(nilai: Nilai): Long = db.nilaiDao().insert(nilai)
     suspend fun updateNilai(nilai: Nilai) = db.nilaiDao().update(nilai)
+    suspend fun getRankingByNilai(mapelId: Long): List<SiswaNilaiRanking> = db.nilaiDao().getRankingByMapel(mapelId)
+    suspend fun getRankingAllNilai(): List<SiswaNilaiRanking> = db.nilaiDao().getRankingAll()
+    suspend fun getAvgNilaiByMapel(): List<com.absenku.data.database.dao.MapelAvgNilai> = db.nilaiDao().getAvgByMapel()
+    suspend fun getRankingByPoinAll(): List<SiswaPoinRanking> = db.poinDisiplinDao().getRankingByPoin()
 
     // ── PENGATURAN ──
     suspend fun getSetting(key: String): Pengaturan? = db.pengaturanDao().getByKey(key)
@@ -68,6 +75,26 @@ class Repository private constructor(private val db: AppDatabase) {
     suspend fun getAuditLog(): List<AuditLog> = db.auditLogDao().getRecent()
     suspend fun logSync(log: SyncLog) = db.syncLogDao().insert(log)
     suspend fun getSyncLog(): List<SyncLog> = db.syncLogDao().getRecent()
+
+    // ── POIN DISIPLIN ──
+    suspend fun getAllPoinDisiplin(): List<PoinDisiplin> = db.poinDisiplinDao().getAll()
+    suspend fun getPoinDisiplinBySiswa(siswaId: Long): List<PoinDisiplin> = db.poinDisiplinDao().getBySiswa(siswaId)
+    suspend fun getPoinDisiplinBySiswaAndKategori(siswaId: Long, kategori: String): List<PoinDisiplin> = db.poinDisiplinDao().getBySiswaAndKategori(siswaId, kategori)
+    suspend fun totalPoinPositif(siswaId: Long): Int = db.poinDisiplinDao().totalPositif(siswaId) ?: 0
+    suspend fun totalPoinNegatif(siswaId: Long): Int = db.poinDisiplinDao().totalNegatif(siswaId) ?: 0
+    suspend fun getRankingByPoin(): List<SiswaPoinRanking> = db.poinDisiplinDao().getRankingByPoin()
+    suspend fun addPoinDisiplin(poin: PoinDisiplin): Long = db.poinDisiplinDao().insert(poin)
+    suspend fun updatePoinDisiplin(poin: PoinDisiplin) = db.poinDisiplinDao().update(poin)
+    suspend fun deletePoinDisiplin(id: Long) = db.poinDisiplinDao().delete(id)
+
+    // ── JADWAL PELAJARAN ──
+    suspend fun getJadwalByKelas(kelasId: Long): List<JadwalPelajaran> = db.jadwalPelajaranDao().getByKelas(kelasId)
+    suspend fun getAllJadwalActive(): List<JadwalPelajaran> = db.jadwalPelajaranDao().getAllActive()
+    suspend fun getJadwalById(id: Long): JadwalPelajaran? = db.jadwalPelajaranDao().getById(id)
+    suspend fun getJadwalByKelasAndHari(kelasId: Long, hari: String): List<JadwalPelajaran> = db.jadwalPelajaranDao().getByKelasAndHari(kelasId, hari)
+    suspend fun addJadwal(jadwal: JadwalPelajaran): Long = db.jadwalPelajaranDao().insert(jadwal)
+    suspend fun updateJadwal(jadwal: JadwalPelajaran) = db.jadwalPelajaranDao().update(jadwal)
+    suspend fun softDeleteJadwal(id: Long, deletedAt: Long) = db.jadwalPelajaranDao().softDelete(id, deletedAt)
 
     // ── EXPORT FLOW ──
     suspend fun getAllSiswaIncludingInactive(): List<Siswa> = db.siswaDao().getAll()
