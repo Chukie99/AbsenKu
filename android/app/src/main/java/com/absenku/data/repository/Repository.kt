@@ -3,6 +3,8 @@ package com.absenku.data.repository
 import com.absenku.data.database.AppDatabase
 import com.absenku.data.model.*
 import com.absenku.data.database.dao.SiswaPoinRanking
+import com.absenku.data.database.dao.SiswaNilaiRanking
+import com.absenku.data.database.dao.MapelAvgNilai
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 

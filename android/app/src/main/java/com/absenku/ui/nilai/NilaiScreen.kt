@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.absenku.data.model.MapelAvgNilai
+import com.absenku.data.database.dao.MapelAvgNilai
 import com.absenku.data.model.Siswa
 
 private val CHART_COLORS = listOf(
