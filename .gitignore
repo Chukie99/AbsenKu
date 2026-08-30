@@ -11,3 +11,10 @@ gradlew.bat~
 **/local.properties
 /app/build/
 /.gradle/
+__pycache__/
+**/__pycache__/
+desktop/dist/
+desktop/data/*.db
+desktop/absenku_desktop.spec
+desktop/build_exe.bat
+desktop/assets/logo.png

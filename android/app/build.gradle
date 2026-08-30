@@ -13,8 +13,8 @@ android {
         applicationId "com.absenku"
         minSdk 24
         targetSdk 34
-        versionCode 1
-        versionName "1.0.0"
+        versionCode 2
+        versionName "2.1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -24,6 +24,23 @@ android {
                 arguments += ["room.schema.location":
                                       "$projectDir/schemas".toString()]
             }
+        }
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("release-key.jks")
+            storePassword "absenku123"
+            keyAlias "absenku"
+            keyPassword "absenku123"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
 
