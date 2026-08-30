@@ -12,7 +12,6 @@ import os, sys, shutil, hashlib, sqlite3, time
 from datetime import datetime
 from pathlib import Path
 
-sys.path.insert(0, os.path.dirname(__file__))
 import db_manager as db
 
 from apscheduler.schedulers.background import BackgroundScheduler

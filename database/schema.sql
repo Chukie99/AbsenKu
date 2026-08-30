@@ -2,6 +2,16 @@
 -- Run at app first-launch to create all tables.
 -- Same schema used on Android (Room) & Desktop (sqlite3).
 
+CREATE TABLE IF NOT EXISTS kelas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nama TEXT NOT NULL,
+    wali_kelas TEXT,
+    tahun_ajaran TEXT,
+    is_active INTEGER DEFAULT 1,
+    deleted_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS siswa (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nis TEXT UNIQUE NOT NULL,
@@ -16,16 +26,6 @@ CREATE TABLE IF NOT EXISTS siswa (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (kelas_id) REFERENCES kelas(id)
-);
-
-CREATE TABLE IF NOT EXISTS kelas (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nama TEXT NOT NULL,
-    wali_kelas TEXT,
-    tahun_ajaran TEXT,
-    is_active INTEGER DEFAULT 1,
-    deleted_at TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS mapel (
@@ -47,14 +47,15 @@ CREATE TABLE IF NOT EXISTS absensi (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (siswa_id) REFERENCES siswa(id),
-    FOREIGN KEY (mapel_id) REFERENCES mapel(id)
+    FOREIGN KEY (mapel_id) REFERENCES mapel(id),
+    UNIQUE(siswa_id, tanggal, mapel_id)
 );
 
 CREATE TABLE IF NOT EXISTS nilai (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     siswa_id INTEGER,
     mapel_id INTEGER,
-    nilai TEXT,
+    nilai REAL CHECK(nilai IS NULL OR (nilai >= 0 AND nilai <= 100)),
     semester TEXT,
     tahun_ajaran TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -110,3 +111,57 @@ CREATE TABLE IF NOT EXISTS sync_log (
     device_id TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- ── Indexes for common query patterns ──
+
+-- siswa lookups
+CREATE INDEX IF NOT EXISTS idx_siswa_kelas_id ON siswa(kelas_id);
+CREATE INDEX IF NOT EXISTS idx_siswa_is_active ON siswa(is_active);
+
+-- absensi: the most query-heavy table
+CREATE INDEX IF NOT EXISTS idx_absensi_siswa_id ON absensi(siswa_id);
+CREATE INDEX IF NOT EXISTS idx_absensi_tanggal ON absensi(tanggal);
+CREATE INDEX IF NOT EXISTS idx_absensi_mapel_id ON absensi(mapel_id);
+CREATE INDEX IF NOT EXISTS idx_absensi_status ON absensi(status);
+CREATE INDEX IF NOT EXISTS idx_absensi_siswa_tanggal ON absensi(siswa_id, tanggal);
+
+-- nilai lookups
+CREATE INDEX IF NOT EXISTS idx_nilai_siswa_id ON nilai(siswa_id);
+CREATE INDEX IF NOT EXISTS idx_nilai_mapel_id ON nilai(mapel_id);
+CREATE INDEX IF NOT EXISTS idx_nilai_semester ON nilai(semester, tahun_ajaran);
+
+-- audit_log
+CREATE INDEX IF NOT EXISTS idx_audit_table_name ON audit_log(table_name);
+CREATE INDEX IF NOT EXISTS idx_audit_record_id ON audit_log(record_id);
+
+-- sync_log
+CREATE INDEX IF NOT EXISTS idx_sync_log_device_id ON sync_log(device_id);
+
+-- paired_devices
+CREATE INDEX IF NOT EXISTS idx_paired_device_id ON paired_devices(device_id);
+
+-- ── Triggers for auto-updating updated_at ──
+
+CREATE TRIGGER IF NOT EXISTS trg_siswa_updated_at
+AFTER UPDATE ON siswa
+BEGIN
+    UPDATE siswa SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_absensi_updated_at
+AFTER UPDATE ON absensi
+BEGIN
+    UPDATE absensi SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_nilai_updated_at
+AFTER UPDATE ON nilai
+BEGIN
+    UPDATE nilai SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_pengaturan_updated_at
+AFTER UPDATE ON pengaturan
+BEGIN
+    UPDATE pengaturan SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+END;

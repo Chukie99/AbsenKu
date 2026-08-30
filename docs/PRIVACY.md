@@ -78,4 +78,4 @@ Jika ada pertanyaan terkait data pribadi anak, hubungi:
 **Email / WA**: 082261407123 (Sopian — Pengembang AbsenKu)  
 
 ---
-*Dokumen ini selarang dibagikan kepada pengguna luar sekolah.*
+*Dokumen ini hanya dibagikan kepada pengguna internal sekolah.*

@@ -1,10 +1,31 @@
 """
-ui/dashboard.py — Dashboard screen with stats cards + simple matplotlib-style bar.
-Tkinter native (no matplotlib dep — draw bars manually on Canvas).
+ui/dashboard.py — Dashboard screen with stats cards + bar chart.
+Clean, minimal design — not AI-template looking.
 """
 import tkinter as tk
 from tkinter import ttk
 import db_manager as db
+import datetime
+
+
+# ── Color palette (warm, not corporate) ──
+C = {
+    "bg": "#F8F9FA",
+    "card": "#FFFFFF",
+    "accent": "#2563EB",
+    "accent_light": "#EFF6FF",
+    "green": "#16A34A",
+    "green_light": "#F0FDF4",
+    "red": "#DC2626",
+    "red_light": "#FEF2F2",
+    "orange": "#EA580C",
+    "orange_light": "#FFF7ED",
+    "text": "#1E293B",
+    "text2": "#64748B",
+    "border": "#E2E8F0",
+    "bar": "#2563EB",
+    "bar_empty": "#E2E8F0",
+}
 
 
 class Dashboard:
@@ -16,56 +37,120 @@ class Dashboard:
         for child in p.winfo_children():
             child.destroy()
 
-        header = ttk.Label(p, text="AbsenKu Dashboard", font=("Helvetica", 16, "bold"))
-        header.pack(pady=12)
+        # ── Header ──
+        hdr = tk.Frame(p, bg=C["bg"])
+        hdr.pack(fill="x", padx=20, pady=(16, 0))
+        tk.Label(hdr, text="Dashboard", font=("Segoe UI", 18, "bold"),
+                 fg=C["text"], bg=C["bg"]).pack(anchor="w")
+        today_str = datetime.date.today().strftime("%A, %d %B %Y")
+        tk.Label(hdr, text=today_str, font=("Segoe UI", 10),
+                 fg=C["text2"], bg=C["bg"]).pack(anchor="w")
 
-        stats = ttk.Frame(p)
-        stats.pack(fill="x", pady=8)
-
-        # stats cards
-        counts = {
-            "Total Siswa": 0, "Total Kelas": 0,
-            "Hadir Hari Ini": 0, "Alfa Hari Ini": 0,
-        }
-        import datetime
+        # ── Stats cards ──
         today = datetime.date.today().isoformat()
         all_siswa = db.siswa_all()
-        counts["Total Siswa"] = len(all_siswa)
-        counts["Total Kelas"] = len(db.kelas_all())
+        all_kelas = db.kelas_all()
         today_absen = db.absensi_by_date(today)
-        counts["Hadir Hari Ini"] = sum(1 for a in today_absen if a["status"] == "Hadir")
-        counts["Alfa Hari Ini"] = sum(1 for a in today_absen if a["status"] == "Alfa")
+        hadir = sum(1 for a in today_absen if a["status"] == "Hadir")
+        alfa = sum(1 for a in today_absen if a["status"] == "Alfa")
+        izin = sum(1 for a in today_absen if a["status"] == "Izin")
+        sakit = sum(1 for a in today_absen if a["status"] == "Sakit")
 
-        for i, (label, val) in enumerate(counts.items()):
-            card = tk.Frame(stats, relief="ridge", borderwidth=1, bg="#E8F0FE")
-            card.grid(row=0, column=i, padx=8, pady=8, sticky="nsew")
-            stats.grid_columnconfigure(i, weight=1)
-            ttk.Label(card, text=str(val), font=("Helvetica", 22, "bold"), foreground="#1A73E8", background="#E8F0FE").pack(pady=4)
-            ttk.Label(card, text=label, font=("Helvetica", 9), foreground="#1A1A1A", background="#E8F0FE").pack()
+        cards_frame = tk.Frame(p, bg=C["bg"])
+        cards_frame.pack(fill="x", padx=20, pady=12)
 
-        # Simple bar chart — attendance per day this week (Canvas)
-        ttk.Label(p, text="Kehadiran 7 Hari Terakhir (Hadir)", font=("Helvetica", 11, "bold")).pack(anchor="w", pady=(16, 4))
-        canvas = tk.Canvas(p, height=140, bg="white", highlightthickness=0)
-        canvas.pack(fill="x", pady=8)
+        stats = [
+            ("Total Siswa", str(len(all_siswa)), C["accent"], C["accent_light"]),
+            ("Total Kelas", str(len(all_kelas)), C["green"], C["green_light"]),
+            ("Hadir Hari Ini", str(hadir), C["green"], C["green_light"]),
+            ("Alfa Hari Ini", str(alfa), C["red"], C["red_light"]),
+        ]
 
-        import datetime as dt
-        cal = dt.date.today()
-        weekly = []
-        labels = []
-        for i in range(6, -1, -1):
-            d = cal - dt.timedelta(days=i)
-            labels.append(d.strftime("%a"))
-            arr = db.absensi_by_date(d.isoformat())
-            weekly.append(sum(1 for a in arr if a["status"] == "Hadir"))
-        maxv = max(weekly) if weekly else 1
-        maxv = max(maxv, 1)
-        w = 300
-        max_h = 100
-        canvas.config(width=w)
-        bar_w = w / (len(weekly) * 2)
-        for idx, val in enumerate(weekly):
-            bh = int((val / maxv) * max_h) if maxv else 0
-            x = idx * (w / len(weekly)) + bar_w / 2
-            canvas.create_rectangle(x, max_h - bh, x + bar_w, max_h, fill="#1A73E8", width=0)
-            canvas.create_text(x + bar_w / 2, max_h + 14, text=labels[idx], font=("Helvetica", 7))
-            canvas.create_text(x + bar_w / 2, max_h - bh - 6, text=str(val), font=("Helvetica", 8), fill="#5F6368")
+        for i, (label, val, color, bg_color) in enumerate(stats):
+            card = tk.Frame(cards_frame, bg=bg_color, relief="flat",
+                           highlightbackground=C["border"], highlightthickness=1)
+            card.grid(row=0, column=i, padx=6, pady=4, sticky="nsew")
+            cards_frame.grid_columnconfigure(i, weight=1)
+
+            inner = tk.Frame(card, bg=bg_color)
+            inner.pack(padx=16, pady=12, anchor="w")
+
+            # Colored left bar
+            bar = tk.Frame(inner, bg=color, width=4, height=40)
+            bar.pack(side="left", padx=(0, 12))
+            bar.pack_propagate(False)
+
+            tk.Label(inner, text=val, font=("Segoe UI", 24, "bold"),
+                     fg=color, bg=bg_color).pack(anchor="w")
+            tk.Label(inner, text=label, font=("Segoe UI", 9),
+                     fg=C["text2"], bg=bg_color).pack(anchor="w")
+
+        # ── Attendance summary ──
+        sum_frame = tk.Frame(p, bg=C["bg"])
+        sum_frame.pack(fill="x", padx=20, pady=(4, 8))
+
+        for label, val, color in [("Hadir", hadir, C["green"]),
+                                   ("Izin", izin, C["orange"]),
+                                   ("Sakit", sakit, C["accent"]),
+                                   ("Alfa", alfa, C["red"])]:
+            sf = tk.Frame(sum_frame, bg=C["card"], relief="flat",
+                         highlightbackground=C["border"], highlightthickness=1)
+            sf.pack(side="left", padx=4, expand=True, fill="x")
+            tk.Label(sf, text=str(val), font=("Segoe UI", 14, "bold"),
+                     fg=color, bg=C["card"]).pack(pady=(8, 0))
+            tk.Label(sf, text=label, font=("Segoe UI", 9),
+                     fg=C["text2"], bg=C["card"]).pack(pady=(0, 8))
+
+        # ── Bar chart — 7 day attendance ──
+        chart_frame = tk.Frame(p, bg=C["card"], relief="flat",
+                              highlightbackground=C["border"], highlightthickness=1)
+        chart_frame.pack(fill="both", expand=True, padx=20, pady=(0, 16))
+
+        tk.Label(chart_frame, text="Kehadiran 7 Hari Terakhir",
+                 font=("Segoe UI", 11, "bold"), fg=C["text"],
+                 bg=C["card"]).pack(anchor="w", padx=16, pady=(12, 4))
+
+        canvas = tk.Canvas(chart_frame, height=160, bg=C["card"],
+                          highlightthickness=0)
+        canvas.pack(fill="both", expand=True, padx=16, pady=(0, 12))
+
+        # Draw after layout
+        def draw_bars(event=None):
+            canvas.delete("all")
+            w = canvas.winfo_width()
+            if w < 100:
+                return
+
+            cal = datetime.date.today()
+            weekly = []
+            day_labels = []
+            for i in range(6, -1, -1):
+                d = cal - datetime.timedelta(days=i)
+                day_labels.append(d.strftime("%a"))
+                arr = db.absensi_by_date(d.isoformat())
+                weekly.append(sum(1 for a in arr if a["status"] == "Hadir"))
+
+            maxv = max(weekly) if weekly else 1
+            maxv = max(maxv, 1)
+
+            chart_h = 120
+            bar_gap = 8
+            bar_w = (w - bar_gap * (len(weekly) + 1)) / len(weekly)
+
+            for idx, val in enumerate(weekly):
+                bh = int((val / maxv) * chart_h) if maxv else 0
+                x = bar_gap + idx * (bar_w + bar_gap)
+
+                # Bar
+                canvas.create_rectangle(x, chart_h - bh + 10, x + bar_w, chart_h + 10,
+                                       fill=C["bar"], outline="", width=0)
+                # Value on top
+                canvas.create_text(x + bar_w / 2, chart_h - bh + 2,
+                                  text=str(val), font=("Segoe UI", 8),
+                                  fill=C["text2"])
+                # Day label
+                canvas.create_text(x + bar_w / 2, chart_h + 24,
+                                  text=day_labels[idx], font=("Segoe UI", 8),
+                                  fill=C["text2"])
+
+        canvas.bind("<Configure>", draw_bars)
