@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS siswa (
     alamat TEXT,
     no_hp_ortu TEXT,
     tanggal_lahir TEXT,
+    qr_code TEXT,
     is_active INTEGER DEFAULT 1,
     deleted_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -153,6 +154,49 @@ AFTER UPDATE ON pengaturan
 BEGIN
     UPDATE pengaturan SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
 END;
+CREATE TABLE IF NOT EXISTS jadwal_pelajaran (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    kelas_id INTEGER NOT NULL,
+    mapel_id INTEGER NOT NULL,
+    hari TEXT NOT NULL CHECK(hari IN ('Senin','Selasa','Rabu','Kamis','Jumat','Sabtu')),
+    jam_mulai TEXT NOT NULL,
+    jam_selesai TEXT NOT NULL,
+    guru TEXT,
+    is_active INTEGER DEFAULT 1,
+    deleted_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (kelas_id) REFERENCES kelas(id),
+    FOREIGN KEY (mapel_id) REFERENCES mapel(id)
+);
+CREATE TABLE IF NOT EXISTS poin_disiplin (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    siswa_id INTEGER NOT NULL,
+    tanggal TEXT NOT NULL,
+    kategori TEXT CHECK(kategori IN ('Positif','Negatif')),
+    poin INTEGER NOT NULL DEFAULT 0,
+    keterangan TEXT,
+    diberikan_oleh TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (siswa_id) REFERENCES siswa(id)
+);
+CREATE INDEX IF NOT EXISTS idx_jadwal_kelas ON jadwal_pelajaran(kelas_id);
+CREATE INDEX IF NOT EXISTS idx_jadwal_mapel ON jadwal_pelajaran(mapel_id);
+CREATE INDEX IF NOT EXISTS idx_jadwal_hari ON jadwal_pelajaran(hari);
+CREATE INDEX IF NOT EXISTS idx_poin_siswa ON poin_disiplin(siswa_id);
+CREATE INDEX IF NOT EXISTS idx_poin_tanggal ON poin_disiplin(tanggal);
+CREATE INDEX IF NOT EXISTS idx_poin_kategori ON poin_disiplin(kategori);
+CREATE TRIGGER IF NOT EXISTS trg_jadwal_updated_at
+AFTER UPDATE ON jadwal_pelajaran
+BEGIN
+    UPDATE jadwal_pelajaran SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+END;
+CREATE TRIGGER IF NOT EXISTS trg_poin_updated_at
+AFTER UPDATE ON poin_disiplin
+BEGIN
+    UPDATE poin_disiplin SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+END;
 """
 
 
@@ -177,6 +221,21 @@ def tx(db_path: str = DB_PATH):
 def init_db(db_path: str = DB_PATH) -> None:
     with tx(db_path) as conn:
         conn.executescript(_SCHEMA_SQL); conn.commit()
+    _migrate_add_qr_code(db_path)
+
+
+def _migrate_add_qr_code(db_path: str = DB_PATH) -> None:
+    """Add qr_code column to existing databases if missing."""
+    conn = get_conn(db_path)
+    try:
+        cols = {row[1] for row in conn.execute("PRAGMA table_info(siswa)").fetchall()}
+        if "qr_code" not in cols:
+            conn.execute("ALTER TABLE siswa ADD COLUMN qr_code TEXT")
+            conn.commit()
+    except Exception:
+        pass
+    finally:
+        conn.close()
 
 
 def q(sql: str, params: tuple = (), db_path: str = DB_PATH) -> List[dict]:
@@ -222,6 +281,9 @@ def siswa_update(id, nis, nama, kelas_id, foto, alamat, no_hp, tgl_lahir):
 
 def siswa_soft_delete(id):
     exec_one("UPDATE siswa SET is_active=0, deleted_at=CURRENT_TIMESTAMP WHERE id=?", (id,))
+
+def siswa_update_qr(id, qr_path):
+    exec_one("UPDATE siswa SET qr_code=?, updated_at=CURRENT_TIMESTAMP WHERE id=?", (qr_path, id))
 
 def kelas_all():
     return q("SELECT * FROM kelas WHERE is_active=1 ORDER BY nama")
@@ -306,6 +368,88 @@ def sync_log_recent(limit=200):
 
 # alias kept for sync_server / bluetooth_server which use absensi_log_insert
 log_sync = absensi_log_insert
+
+
+# ── Jadwal Pelajaran accessors ──
+def jadwal_all():
+    return q("SELECT j.*, k.nama AS kelas_nama, m.nama AS mapel_nama FROM jadwal_pelajaran j LEFT JOIN kelas k ON j.kelas_id=k.id LEFT JOIN mapel m ON j.mapel_id=m.id WHERE j.is_active=1 ORDER BY j.hari, j.jam_mulai")
+
+def jadwal_by_kelas(kelas_id):
+    return q("SELECT j.*, k.nama AS kelas_nama, m.nama AS mapel_nama FROM jadwal_pelajaran j LEFT JOIN kelas k ON j.kelas_id=k.id LEFT JOIN mapel m ON j.mapel_id=m.id WHERE j.kelas_id=? AND j.is_active=1 ORDER BY j.hari, j.jam_mulai", (kelas_id,))
+
+def jadwal_insert(kelas_id, mapel_id, hari, jam_mulai, jam_selesai, guru):
+    return exec_one("INSERT INTO jadwal_pelajaran (kelas_id, mapel_id, hari, jam_mulai, jam_selesai, guru) VALUES (?,?,?,?,?,?)",
+                    (kelas_id, mapel_id, hari, jam_mulai, jam_selesai, guru))
+
+def jadwal_update(id, kelas_id, mapel_id, hari, jam_mulai, jam_selesai, guru):
+    exec_one("UPDATE jadwal_pelajaran SET kelas_id=?, mapel_id=?, hari=?, jam_mulai=?, jam_selesai=?, guru=? WHERE id=?",
+             (kelas_id, mapel_id, hari, jam_mulai, jam_selesai, guru, id))
+
+def jadwal_soft_delete(id):
+    exec_one("UPDATE jadwal_pelajaran SET is_active=0, deleted_at=CURRENT_TIMESTAMP WHERE id=?", (id,))
+
+
+# ── Poin Disiplin accessors ──
+def poin_all():
+    return q("SELECT p.*, s.nama AS siswa_nama FROM poin_disiplin p LEFT JOIN siswa s ON p.siswa_id=s.id ORDER BY p.tanggal DESC, p.created_at DESC")
+
+def poin_by_siswa(siswa_id):
+    return q("SELECT p.*, s.nama AS siswa_nama FROM poin_disiplin p LEFT JOIN siswa s ON p.siswa_id=s.id WHERE p.siswa_id=? ORDER BY p.tanggal DESC", (siswa_id,))
+
+def poin_insert(siswa_id, tanggal, kategori, poin, keterangan, diberikan_oleh):
+    return exec_one("INSERT INTO poin_disiplin (siswa_id, tanggal, kategori, poin, keterangan, diberikan_oleh) VALUES (?,?,?,?,?,?)",
+                    (siswa_id, tanggal, kategori, poin, keterangan, diberikan_oleh))
+
+def poin_update(id, tanggal, kategori, poin, keterangan, diberikan_oleh):
+    exec_one("UPDATE poin_disiplin SET tanggal=?, kategori=?, poin=?, keterangan=?, diberikan_oleh=? WHERE id=?",
+             (tanggal, kategori, poin, keterangan, diberikan_oleh, id))
+
+def poin_delete(id):
+    exec_one("DELETE FROM poin_disiplin WHERE id=?", (id,))
+
+def poin_summary_by_kelas(kelas_id=None):
+    """Return per-siswa net poin (positif - negatif) for ranking."""
+    sql = """
+        SELECT s.id, s.nama, s.nis, k.nama AS kelas_nama,
+               SUM(CASE WHEN p.kategori='Positif' THEN p.poin ELSE 0 END) AS poin_positif,
+               SUM(CASE WHEN p.kategori='Negatif' THEN p.poin ELSE 0 END) AS poin_negatif,
+               SUM(CASE WHEN p.kategori='Positif' THEN p.poin ELSE -p.poin END) AS poin_net
+        FROM poin_disiplin p
+        JOIN siswa s ON p.siswa_id = s.id
+        LEFT JOIN kelas k ON s.kelas_id = k.id
+        WHERE s.is_active = 1 AND s.deleted_at IS NULL
+    """
+    params = ()
+    if kelas_id:
+        sql += " AND s.kelas_id = ?"
+        params = (kelas_id,)
+    sql += " GROUP BY s.id ORDER BY poin_net DESC"
+    return q(sql, params)
+
+
+def ranking_nilai_by_kelas(kelas_id=None, semester=None, ta=None):
+    """Return per-siswa average nilai for ranking."""
+    sql = """
+        SELECT s.id, s.nama, s.nis, k.nama AS kelas_nama,
+               AVG(n.nilai) AS rata_rata,
+               COUNT(n.id) AS jumlah_mapel
+        FROM nilai n
+        JOIN siswa s ON n.siswa_id = s.id
+        LEFT JOIN kelas k ON s.kelas_id = k.id
+        WHERE s.is_active = 1 AND s.deleted_at IS NULL
+    """
+    params_list = []
+    if kelas_id:
+        sql += " AND s.kelas_id = ?"
+        params_list.append(kelas_id)
+    if semester:
+        sql += " AND n.semester = ?"
+        params_list.append(semester)
+    if ta:
+        sql += " AND n.tahun_ajaran = ?"
+        params_list.append(ta)
+    sql += " GROUP BY s.id ORDER BY rata_rata DESC"
+    return q(sql, tuple(params_list))
 
 
 if __name__ == "__main__":

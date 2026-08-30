@@ -112,6 +112,40 @@ CREATE TABLE IF NOT EXISTS sync_log (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- ═══════════════════════════════════════
+-- NEW TABLES (v2.2.0 — ported from KelasFun)
+-- ═══════════════════════════════════════
+
+-- Poin Disiplin (pelanggaran + prestasi)
+CREATE TABLE IF NOT EXISTS poin_disiplin (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    siswa_id INTEGER NOT NULL,
+    tipe TEXT CHECK(tipe IN ('PELANGGARAN', 'PRESTASI')) NOT NULL,
+    kategori TEXT NOT NULL,
+    poin INTEGER NOT NULL,
+    keterangan TEXT,
+    tanggal TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (siswa_id) REFERENCES siswa(id)
+);
+
+-- Jadwal Pelajaran
+CREATE TABLE IF NOT EXISTS jadwal (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    hari TEXT CHECK(hari IN ('Senin','Selasa','Rabu','Kamis','Jumat','Sabtu')) NOT NULL,
+    jam_ke INTEGER NOT NULL,
+    mapel_id INTEGER NOT NULL,
+    kelas_id INTEGER NOT NULL,
+    guru TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (mapel_id) REFERENCES mapel(id),
+    FOREIGN KEY (kelas_id) REFERENCES kelas(id),
+    UNIQUE(hari, jam_ke, kelas_id)
+);
+
+-- QR Code column on siswa (ALTER TABLE for existing DBs)
+-- ALTER TABLE siswa ADD COLUMN qr_code TEXT;
+
 -- ── Indexes for common query patterns ──
 
 -- siswa lookups
@@ -136,6 +170,16 @@ CREATE INDEX IF NOT EXISTS idx_audit_record_id ON audit_log(record_id);
 
 -- sync_log
 CREATE INDEX IF NOT EXISTS idx_sync_log_device_id ON sync_log(device_id);
+
+-- poin_disiplin
+CREATE INDEX IF NOT EXISTS idx_poin_siswa_id ON poin_disiplin(siswa_id);
+CREATE INDEX IF NOT EXISTS idx_poin_tipe ON poin_disiplin(tipe);
+CREATE INDEX IF NOT EXISTS idx_poin_tanggal ON poin_disiplin(tanggal);
+
+-- jadwal
+CREATE INDEX IF NOT EXISTS idx_jadwal_hari ON jadwal(hari);
+CREATE INDEX IF NOT EXISTS idx_jadwal_kelas_id ON jadwal(kelas_id);
+CREATE INDEX IF NOT EXISTS idx_jadwal_mapel_id ON jadwal(mapel_id);
 
 -- paired_devices
 CREATE INDEX IF NOT EXISTS idx_paired_device_id ON paired_devices(device_id);

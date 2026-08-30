@@ -36,17 +36,23 @@ C = {
     "bg": "#F8F9FA",
 }
 
+# Screens that use the new Frame-based pattern (no .build() method)
+# Both jadwal_pelajaran and poin_disiplin now use standard .build() pattern
+FRAME_SCREENS = set()
+
 
 def make_root():
     if HAS_BOOTSTRAP:
         root = ttk.Window(themename=THEME)
     else:
         root = tk.Tk()
-    root.title("AbsenKu v2.0")
+    root.title("AbsenKu v2.2.0")
     root.geometry("1024x700")
     root.minsize(800, 500)
     try:
-        root.iconbitmap(default="")
+        icon_path = os.path.join(os.path.dirname(here), "assets", "icon.ico")
+        if os.path.exists(icon_path):
+            root.iconbitmap(default=icon_path)
     except Exception:
         pass
     return root
@@ -80,10 +86,12 @@ def main():
     if HAS_BOOTSTRAP:
         ttk.Label(logo_frame, text="📋 AbsenKu", font=("Helvetica", 14, "bold"),
                   bootstyle="inverse-primary").pack(anchor="w")
+        ttk.Label(logo_frame, text="v2.2.0", font=("Helvetica", 9),
+                  bootstyle="light").pack(anchor="w")
     else:
         tk.Label(logo_frame, text="📋 AbsenKu", font=("Segoe UI", 14, "bold"),
                 fg="white", bg=C["sidebar_bg"]).pack(anchor="w")
-        tk.Label(logo_frame, text="v2.0", font=("Segoe UI", 8),
+        tk.Label(logo_frame, text="v2.2.0", font=("Segoe UI", 8),
                 fg=C["sidebar_fg"], bg=C["sidebar_bg"]).pack(anchor="w")
 
     # ── Menu items with icons ──
@@ -92,10 +100,12 @@ def main():
         ("👤  Siswa", "siswa"),
         ("🏫  Kelas", "kelas"),
         ("📚  Mapel", "mapel"),
-        ("📝  Nilai", "nilai"),
         ("✅  Absensi", "absensi"),
-        ("🏷️  Cetak Name Tag", "cetak_name_tag"),
+        ("📝  Nilai", "nilai"),
+        ("📅  Jadwal Pelajaran","jadwal_pelajaran"),
+        ("🎯  Poin Disiplin", "poin_disiplin"),
         ("📈  Laporan", "laporan"),
+        ("🏷️  Cetak Name Tag", "cetak_name_tag"),
         ("⚙️  Pengaturan", "pengaturan"),
     ]
 
@@ -117,6 +127,8 @@ def main():
             screen_cls = getattr(mod, name.capitalize())
             screen_cls(content).build()
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             if HAS_BOOTSTRAP:
                 err = ttk.Label(content, text=f"Module '{name}' error: {e}",
                               foreground="#D93025")
