@@ -9,18 +9,16 @@
       --primary: #2563EB;
       --primary-light: #EFF6FF;
       --primary-hover: #1D4ED8;
-      --secondary: #059669;
-      --secondary-hover: #047857;
+      --green: #25D366;
+      --green-hover: #1DA851;
       --surface: #ffffff;
       --background: #F8FAFC;
       --text-primary: #0F172A;
       --text-secondary: #64748B;
       --error: #DC2626;
-      --error-bg: #FEF2F2;
       --border: #E2E8F0;
       --border-focus: #93C5FD;
       --radius: 10px;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
       --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -31,85 +29,34 @@
       min-height: 100vh;
       display: flex;
       justify-content: center;
-      align-items: flex-start;
       padding: 32px 16px;
-      line-height: 1.5;
     }
-
-    /* --- password gate --- */
-    .gate-wrapper {
-      width: 100%; max-width: 380px; margin-top: 80px;
-    }
-    .gate-card {
-      background: var(--surface);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-md);
-      padding: 28px 24px 24px;
-    }
-    .gate-card h2 {
-      font-size: 16px; font-weight: 600; margin-bottom: 4px;
-    }
-    .gate-card .gate-sub {
-      font-size: 13px; color: var(--text-secondary); margin-bottom: 18px;
-    }
-    .gate-card input {
-      width: 100%; padding: 10px 12px;
-      border: 1.5px solid var(--border); border-radius: 8px;
-      font-size: 14px; margin-bottom: 14px;
-    }
-    .gate-card input:focus {
-      outline: none; border-color: var(--primary);
-      box-shadow: 0 0 0 3px var(--primary-light);
-    }
-    .gate-card button {
-      width: 100%; padding: 10px 0; border: none; border-radius: 8px;
-      background: var(--primary); color: #fff;
-      font-size: 14px; font-weight: 600; cursor: pointer;
-    }
-    .gate-card button:hover { background: var(--primary-hover); }
-    .gate-error {
-      color: var(--error); font-size: 12px; margin-top: 10px;
-      min-height: 16px;
-    }
-
-    /* --- main tool --- */
-    .tool-wrapper { display: none; width: 100%; max-width: 420px; }
     .card {
       background: var(--surface);
       border-radius: var(--radius);
       box-shadow: var(--shadow-md);
       padding: 24px 22px 20px;
       width: 100%;
+      max-width: 420px;
     }
     .header { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
     .header .icon {
       width: 32px; height: 32px; border-radius: 8px;
       background: var(--primary-light); color: var(--primary);
       display: flex; align-items: center; justify-content: center;
-      font-size: 16px; font-weight: 700; flex-shrink: 0;
+      font-size: 16px; font-weight: 700;
     }
     h1 { font-size: 18px; font-weight: 700; }
-    p.lead {
-      font-size: 13px; color: var(--text-secondary);
-      margin-bottom: 18px; padding-left: 42px;
-    }
-    label {
-      font-size: 13px; font-weight: 500; color: var(--text-secondary);
-      display: block; margin-bottom: 6px;
-    }
-    input[type=text], input[type=password] {
+    p.lead { font-size: 13px; color: var(--text-secondary); margin-bottom: 18px; padding-left: 42px; }
+    label { font-size: 13px; font-weight: 500; color: var(--text-secondary); display: block; margin-bottom: 6px; }
+    input[type=text] {
       width: 100%; padding: 10px 12px;
       border: 1.5px solid var(--border); border-radius: 8px;
       font-size: 14px;
       font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
     }
-    input[type=text]:focus, input[type=password]:focus {
-      outline: none; border-color: var(--primary);
-      box-shadow: 0 0 0 3px var(--primary-light);
-    }
-    .row {
-      display: flex; gap: 10px; margin-top: 16px; align-items: stretch;
-    }
+    input[type=text]:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+    .row { display: flex; gap: 10px; margin-top: 16px; }
     button {
       border: none; border-radius: 8px; font-size: 14px;
       font-weight: 600; cursor: pointer; transition: background 0.15s;
@@ -118,112 +65,102 @@
     button:disabled { opacity: 0.45; cursor: not-allowed; }
     .btn-generate { flex: 1; background: var(--primary); color: #fff; }
     .btn-generate:hover:not(:disabled) { background: var(--primary-hover); }
-    .btn-copy {
-      background: #F1F5F9; color: var(--text-primary); border: 1.5px solid var(--border);
-    }
+    .btn-copy { background: #F1F5F9; color: var(--text-primary); border: 1.5px solid var(--border); }
     .btn-copy:hover { background: #E2E8F0; }
-    .btn-copy:disabled { background: #F1F5F9; }
-
-    .error-msg {
-      color: var(--error); font-size: 12px; margin-top: 8px;
-      min-height: 16px; line-height: 1.4;
+    .btn-wa {
+      background: var(--green); color: #fff; width: 100%;
+      margin-top: 12px; padding: 12px; font-size: 15px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
     }
-
+    .btn-wa:hover { background: var(--green-hover); }
+    .error-msg { color: var(--error); font-size: 12px; margin-top: 8px; min-height: 16px; }
     .output {
       margin-top: 16px; padding: 14px 16px;
       background: var(--primary-light); border-radius: 8px;
-      border: 1px dashed var(--border-focus);
-      display: none;
+      border: 1px dashed var(--border-focus); display: none;
     }
-    .output .label {
-      font-size: 11px; color: var(--text-secondary);
-      text-transform: uppercase; letter-spacing: 0.6px; font-weight: 500;
-    }
+    .output .label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.6px; }
     .output .value {
       font-size: 20px;
       font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
       font-weight: 700; color: var(--primary); letter-spacing: 1.5px;
       margin-top: 2px; word-break: break-all;
     }
-
-    .history { margin-top: 20px; }
-    .history-header {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 8px;
+    .info-box {
+      margin-top: 16px; padding: 12px 14px;
+      background: #FFF7ED; border-radius: 8px;
+      border: 1px solid #FED7AA; font-size: 12px;
+      color: #9A3412; line-height: 1.5;
     }
+    .info-box strong { color: #7C2D12; }
+    .history { margin-top: 20px; }
+    .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .history h2 { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
     .history .clear-btn {
       font-size: 11px; color: var(--text-secondary); background: none;
-      border: none; cursor: pointer; text-decoration: underline;
-      padding: 2px 4px;
+      border: none; cursor: pointer; text-decoration: underline; padding: 2px 4px;
     }
     .history .clear-btn:hover { color: var(--error); }
     .history-list { max-height: 200px; overflow-y: auto; }
     .history-item {
       font-size: 13px; padding: 10px 0; border-bottom: 1px solid var(--border);
-      display: flex; justify-content: space-between; align-items: center;
-      gap: 12px;
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
     }
     .history-item:last-child { border-bottom: none; }
     .history-item .info { min-width: 0; }
-    .history-item .device-id {
-      font-weight: 600; font-size: 13px; word-break: break-all;
-    }
+    .history-item .device-id { font-weight: 600; font-size: 13px; word-break: break-all; }
     .history-item .date { color: var(--text-secondary); font-size: 11px; margin-top: 2px; }
     .history-item .serial {
       font-family: 'SF Mono', 'Fira Code', monospace;
       font-weight: 700; color: var(--primary); font-size: 14px;
       white-space: nowrap; flex-shrink: 0;
     }
-    .empty-hint {
-      font-size: 12px; color: var(--text-secondary); text-align: center;
-      padding: 12px 0; font-style: italic;
-    }
+    .empty-hint { font-size: 12px; color: var(--text-secondary); text-align: center; padding: 12px 0; font-style: italic; }
   </style>
 </head>
 <body>
-
-  <!-- PASSWORD GATE -->
-  <div class="gate-wrapper" id="gateWrapper">
-    <div class="gate-card">
-      <h2>🔒 Admin Access</h2>
-      <p class="gate-sub">Masukkan master password untuk mengakses generator.</p>
-      <input type="password" id="masterPassword" placeholder="Master password…" maxlength="128" />
-      <button id="btnUnlock">Masuk</button>
-      <div class="gate-error" id="gateError"></div>
+  <div class="card">
+    <div class="header">
+      <div class="icon">S</div>
+      <h1>Serial Generator</h1>
     </div>
-  </div>
+    <p class="lead">Buat nomor seri aktivasi dari Device ID user.</p>
 
-  <!-- MAIN TOOL (hidden until unlocked) -->
-  <div class="tool-wrapper" id="toolWrapper">
-    <div class="card">
-      <div class="header">
-        <div class="icon">S</div>
-        <h1>Serial Generator</h1>
+    <label for="deviceId">Device ID (dari HP user)</label>
+    <input type="text" id="deviceId" placeholder="Contoh: A7K3P9Q2" maxlength="64" />
+
+    <div class="row">
+      <button id="btnGenerate" class="btn-generate" disabled>Buat Serial</button>
+      <button id="btnCopy" class="btn-copy" disabled>Salin</button>
+    </div>
+    <div class="error-msg" id="errorMsg"></div>
+
+    <div class="output" id="outputBox">
+      <div class="label">Serial Number</div>
+      <div class="value" id="output"></div>
+    </div>
+
+    <div class="info-box">
+      <strong>Cara kerja:</strong><br>
+      1. User beli APK → buka aplikasi → muncul Device ID<br>
+      2. User kirim Device ID ke WhatsApp admin<br>
+      3. Admin generate serial di tool ini<br>
+      4. User input serial → aplikasi terbuka permanen<br>
+      5. Serial terikat 1 device (ganti HP = perlu serial baru)
+    </div>
+
+    <a href="https://wa.me/6282261407123?text=Halo%20Admin%20AbsenKu%2C%20saya%20butuh%20serial%20aktivasi.%20Device%20ID%20saya%3A%20" 
+       target="_blank" class="btn-wa">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Hubungi Admin via WhatsApp
+    </a>
+
+    <div class="history">
+      <div class="history-header">
+        <h2>Riwayat</h2>
+        <button class="clear-btn" id="btnClear">Hapus semua</button>
       </div>
-      <p class="lead">Buat nomor seri dari Device ID siswa atau guru.</p>
-
-      <label for="deviceId">Device ID</label>
-      <input type="text" id="deviceId" placeholder="Contoh: A7K3P9Q2-B4X9" maxlength="64" />
-
-      <div class="row">
-        <button id="btnGenerate" class="btn-generate" disabled>Buat Serial</button>
-        <button id="btnCopy" class="btn-copy" disabled>Salin</button>
-      </div>
-      <div class="error-msg" id="errorMsg"></div>
-
-      <div class="output" id="outputBox">
-        <div class="label">Serial Number</div>
-        <div class="value" id="output"></div>
-      </div>
-
-      <div class="history">
-        <div class="history-header">
-          <h2>Riwayat</h2>
-          <button class="clear-btn" id="btnClear" title="Hapus semua riwayat">Hapus semua</button>
-        </div>
-        <div class="history-list" id="historyList"></div>
-      </div>
+      <div class="history-list" id="historyList"></div>
     </div>
   </div>
 
@@ -231,96 +168,39 @@
 (function() {
   'use strict';
 
-  // =============================================
-  // SECURITY: Dynamic salt derived from master password
-  // Without the password, serials cannot be generated.
-  // =============================================
-  const SALT_PEPPER = 'AbsenKu_PEPPER_2025_xKq9';  // public pepper — fine to ship
-  let adminHash = null;  // SHA-256 of master password — used as the real salt
+  var SALT = 'AbsenKuSalt2025';
 
   async function sha256(str) {
-    const data = new TextEncoder().encode(str);
-    const buf = await crypto.subtle.digest('SHA-256', data);
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    var data = new TextEncoder().encode(str);
+    var buf = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(buf)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
   }
 
   async function generateSerial(deviceId) {
-    if (!adminHash) throw new Error('Belum terotentikasi.');
-    // salt = password hash + public pepper — neither alone is enough
-    const salt = adminHash + SALT_PEPPER;
-    const hash = await sha256(deviceId + salt);
+    var hash = await sha256(deviceId + SALT);
     return hash.substring(0, 8).toUpperCase();
   }
 
-  // =============================================
-  // DOM refs
-  // =============================================
-  const $gateWrapper   = document.getElementById('gateWrapper');
-  const $masterPw      = document.getElementById('masterPassword');
-  const $btnUnlock     = document.getElementById('btnUnlock');
-  const $gateError     = document.getElementById('gateError');
-  const $toolWrapper   = document.getElementById('toolWrapper');
-  const $devInput      = document.getElementById('deviceId');
-  const $btnGen        = document.getElementById('btnGenerate');
-  const $btnCopy       = document.getElementById('btnCopy');
-  const $outBox        = document.getElementById('outputBox');
-  const $outVal        = document.getElementById('output');
-  const $errMsg        = document.getElementById('errorMsg');
-  const $histList      = document.getElementById('historyList');
-  const $btnClear      = document.getElementById('btnClear');
+  var $devInput = document.getElementById('deviceId');
+  var $btnGen   = document.getElementById('btnGenerate');
+  var $btnCopy  = document.getElementById('btnCopy');
+  var $outBox   = document.getElementById('outputBox');
+  var $outVal   = document.getElementById('output');
+  var $errMsg   = document.getElementById('errorMsg');
+  var $histList = document.getElementById('historyList');
+  var $btnClear = document.getElementById('btnClear');
 
-  // =============================================
-  // PASSWORD GATE
-  // =============================================
-  $btnUnlock.addEventListener('click', unlock);
-  $masterPw.addEventListener('keydown', function(e) { if (e.key === 'Enter') unlock(); });
-
-  async function unlock() {
-    const pw = $masterPw.value.trim();
-    if (!pw) { $gateError.textContent = 'Masukkan password.'; return; }
-    $gateError.textContent = 'Memverifikasi…';
-    $btnUnlock.disabled = true;
-    try {
-      adminHash = await sha256(pw);
-      // Quick sanity: derive a known check value so user knows password is right
-      // We accept any non-empty password — the salt changes based on input.
-      // In production you'd verify against a stored hash, but for a
-      // client-only tool this ensures the operator must know the password.
-      $gateWrapper.style.display = 'none';
-      $toolWrapper.style.display = 'block';
-      renderHistory(loadHistory());
-      $devInput.focus();
-    } catch(e) {
-      $gateError.textContent = 'Gagal memproses password.';
-    } finally {
-      $btnUnlock.disabled = false;
-    }
-  }
-
-  // =============================================
-  // HISTORY (localStorage)
-  // =============================================
-  const LS_KEY = 'absenku_history';
-
-  function loadHistory() {
-    try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); }
-    catch(_) { return []; }
-  }
-
-  function saveHistoryEntry(deviceId, serial) {
-    const hist = loadHistory();
-    hist.unshift({ deviceId: deviceId, serial: serial, date: new Date().toLocaleString('id-ID') });
+  var LS_KEY = 'absenku_history';
+  function loadHistory() { try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch(_) { return []; } }
+  function saveHistoryEntry(did, serial) {
+    var hist = loadHistory();
+    hist.unshift({ deviceId: did, serial: serial, date: new Date().toLocaleString('id-ID') });
     if (hist.length > 50) hist.length = 50;
     localStorage.setItem(LS_KEY, JSON.stringify(hist));
     renderHistory(hist);
   }
+  function clearHistory() { localStorage.removeItem(LS_KEY); renderHistory([]); }
 
-  function clearHistory() {
-    localStorage.removeItem(LS_KEY);
-    renderHistory([]);
-  }
-
-  // SECURITY FIX: No innerHTML — build DOM nodes safely via textContent
   function renderHistory(hist) {
     $histList.textContent = '';
     if (!hist || hist.length === 0) {
@@ -333,34 +213,27 @@
     hist.forEach(function(h) {
       var row = document.createElement('div');
       row.className = 'history-item';
-
       var info = document.createElement('div');
       info.className = 'info';
-
       var device = document.createElement('div');
       device.className = 'device-id';
       device.textContent = h.deviceId;
-
       var date = document.createElement('div');
       date.className = 'date';
       date.textContent = h.date;
-
       info.appendChild(device);
       info.appendChild(date);
-
       var serial = document.createElement('div');
       serial.className = 'serial';
       serial.textContent = h.serial;
-
       row.appendChild(info);
       row.appendChild(serial);
       $histList.appendChild(row);
     });
   }
 
-  // =============================================
-  // GENERATE
-  // =============================================
+  renderHistory(loadHistory());
+
   $devInput.addEventListener('input', function() {
     $errMsg.textContent = '';
     $btnGen.disabled = $devInput.value.trim().length < 1;
@@ -384,21 +257,13 @@
     }
   });
 
-  // =============================================
-  // COPY
-  // =============================================
   $btnCopy.addEventListener('click', async function() {
     var text = $outVal.textContent;
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch(_) {
+    try { await navigator.clipboard.writeText(text); }
+    catch(_) {
       var ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy');
       document.body.removeChild(ta);
     }
     var old = $btnCopy.textContent;
@@ -406,9 +271,6 @@
     setTimeout(function() { $btnCopy.textContent = old; }, 1200);
   });
 
-  // =============================================
-  // CLEAR HISTORY
-  // =============================================
   $btnClear.addEventListener('click', function() {
     if (confirm('Hapus semua riwayat serial?')) clearHistory();
   });
