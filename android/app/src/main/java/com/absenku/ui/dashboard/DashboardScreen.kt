@@ -36,6 +36,7 @@ fun DashboardScreen(
     onNavigateToPoinDisiplin: () -> Unit = {},
     onNavigateToJadwal: () -> Unit = {},
     onNavigateToNilai: () -> Unit = {},
+    onNavigateToQrScanner: () -> Unit = {},
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -84,6 +85,7 @@ fun DashboardScreen(
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             MenuTile("Jadwal", Icons.Default.Schedule, Color(0xFF9C27B0), Modifier.weight(1f).clickable { onNavigateToJadwal() })
             MenuTile("Nilai", Icons.Default.Grade, Color(0xFF00BCD4), Modifier.weight(1f).clickable { onNavigateToNilai() })
+            MenuTile("Scan QR", Icons.Default.QrCodeScanner, Color(0xFFE91E63), Modifier.weight(1f).clickable { onNavigateToQrScanner() })
             Spacer(Modifier.weight(1f)) // empty slot for balance
         }
 

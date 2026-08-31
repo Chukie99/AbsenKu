@@ -16,6 +16,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.absenku.ui.dashboard.DashboardScreen
 import com.absenku.ui.absen.AbsenScreen
+import com.absenku.ui.scanner.QrScannerScreen
 import com.absenku.ui.settings.SettingsScreen
 
 /**
@@ -35,7 +36,7 @@ val bottomNavItems = listOf(
 
 /** Routes that should NOT show the bottom nav bar. */
 private val noBottomBarRoutes = setOf(
-    "siswa_list", "siswa_form/{siswaId}", "poin_disiplin", "jadwal_pelajaran", "nilai"
+    "siswa_list", "siswa_form/{siswaId}", "poin_disiplin", "jadwal_pelajaran", "nilai", "qr_scanner"
 )
 
 /**
@@ -76,6 +77,7 @@ fun AbsenNavHost(navController: NavHostController, modifier: Modifier = Modifier
                     onNavigateToPoinDisiplin = { navController.navigate("poin_disiplin") },
                     onNavigateToJadwal = { navController.navigate("jadwal_pelajaran") },
                     onNavigateToNilai = { navController.navigate("nilai") },
+                    onNavigateToQrScanner = { navController.navigate("qr_scanner") },
                 )
             }
             composable(BottomNavItem.Absen.route) { AbsenScreen() }
@@ -114,6 +116,11 @@ fun AbsenNavHost(navController: NavHostController, modifier: Modifier = Modifier
             // ── Nilai (with Charts) ──
             composable("nilai") {
                 com.absenku.ui.nilai.NilaiScreen()
+            }
+
+            // ── QR Scanner ──
+            composable("qr_scanner") {
+                QrScannerScreen(onBack = { navController.popBackStack() })
             }
         }
     }

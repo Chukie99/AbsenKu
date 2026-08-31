@@ -17,3 +17,7 @@ desktop/dist/
 desktop/data/*.db
 desktop/absenku_desktop.spec
 desktop/build_exe.bat
+wait_and_upload.py
+wait_build.py
+release_apk.apk
+absenku_desktop_v2.2.0.zip
