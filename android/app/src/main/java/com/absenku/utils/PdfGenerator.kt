@@ -40,7 +40,8 @@ object PdfGenerator {
         students: List<StudentCardData>,
         schoolName: String?,
         output: Uri,
-    ): Boolean = try {
+    ): Boolean {
+        return try {
         val stream = context.contentResolver.openOutputStream(output) ?: return false
         val pdf = PdfDocument()
         students.forEach { s ->
@@ -53,6 +54,7 @@ object PdfGenerator {
         stream.close()
         true
     } catch (e: Exception) { e.printStackTrace(); false }
+    }
 
     fun generateStudentCardsToFile(
         students: List<StudentCardData>,
@@ -107,7 +109,8 @@ object PdfGenerator {
         context: Context, nis: String, fullName: String, className: String,
         gender: String? = null, birthDate: String? = null, address: String? = null,
         parentPhone: String? = null, schoolName: String? = null, output: Uri,
-    ): Boolean = try {
+    ): Boolean {
+        return try {
         val stream = context.contentResolver.openOutputStream(output) ?: return false
         val pdf = PdfDocument()
         val page = pdf.startPage(PdfDocument.PageInfo.Builder(PAGE_W, PAGE_H, 1).create())
@@ -121,6 +124,7 @@ object PdfGenerator {
         ).forEach { (l, v) -> c.drawText("$l : $v", MARGIN, y, paint); y += 22f }
         pdf.finishPage(page); pdf.writeTo(stream); pdf.close(); stream.close(); true
     } catch (e: Exception) { e.printStackTrace(); false }
+    }
 
     // ─────────────────────────────────────────────────────────────────────
     // 3) REPORT CARD — A4 with grades table
@@ -133,7 +137,8 @@ object PdfGenerator {
         semester: String, grades: List<ReportGradeRow>, totalViolationPoints: Int,
         totalAchievementPoints: Int, rank: Int, totalStudents: Int,
         schoolName: String?, output: Uri,
-    ): Boolean = try {
+    ): Boolean {
+        return try {
         val stream = context.contentResolver.openOutputStream(output) ?: return false
         val pdf = PdfDocument()
         val page = pdf.startPage(PdfDocument.PageInfo.Builder(PAGE_W, PAGE_H, 1).create())
@@ -160,6 +165,7 @@ object PdfGenerator {
             "Peringkat" to "$rank dari $totalStudents").forEach { (l, v) -> c.drawText("$l : $v", MARGIN, y, paint); y += 20f }
         pdf.finishPage(page); pdf.writeTo(stream); pdf.close(); stream.close(); true
     } catch (e: Exception) { e.printStackTrace(); false }
+    }
 
     // ─────────────────────────────────────────────────────────────────────
     // Helpers

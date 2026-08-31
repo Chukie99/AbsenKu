@@ -33,7 +33,8 @@ object ExcelExporter {
         context: Context, output: Uri, className: String, semester: String,
         subjects: List<String>, grades: List<StudentGradeRow>,
         attendance: List<AttendanceSummary>,
-    ): Boolean = try {
+    ): Boolean {
+        return try {
         val stream = context.contentResolver.openOutputStream(output) ?: return false
         val writer = OutputStreamWriter(stream, Charsets.UTF_8)
         val csv = CSVPrinter(writer, CSVFormat.DEFAULT)
@@ -53,6 +54,7 @@ object ExcelExporter {
         // Attendance file
         true
     } catch (e: Exception) { e.printStackTrace(); false }
+    }
 
     fun generateToFile(
         className: String, semester: String, subjects: List<String>,
