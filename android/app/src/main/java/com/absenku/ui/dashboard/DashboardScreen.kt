@@ -37,6 +37,8 @@ fun DashboardScreen(
     onNavigateToJadwal: () -> Unit = {},
     onNavigateToNilai: () -> Unit = {},
     onNavigateToQrScanner: () -> Unit = {},
+    onNavigateToRanking: () -> Unit = {},
+    onNavigateToBatchPrint: (Long) -> Unit = {},
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -86,7 +88,13 @@ fun DashboardScreen(
             MenuTile("Jadwal", Icons.Default.Schedule, Color(0xFF9C27B0), Modifier.weight(1f).clickable { onNavigateToJadwal() })
             MenuTile("Nilai", Icons.Default.Grade, Color(0xFF00BCD4), Modifier.weight(1f).clickable { onNavigateToNilai() })
             MenuTile("Scan QR", Icons.Default.QrCodeScanner, Color(0xFFE91E63), Modifier.weight(1f).clickable { onNavigateToQrScanner() })
-            Spacer(Modifier.weight(1f)) // empty slot for balance
+        }
+        Spacer(Modifier.height(8.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            MenuTile("Peringkat", Icons.Default.EmojiEvents, Color(0xFFFF9800), Modifier.weight(1f).clickable { onNavigateToRanking() })
+            MenuTile("Cetak Batch", Icons.Default.Print, Color(0xFF607D8B), Modifier.weight(1f).clickable { onNavigateToBatchPrint(0L) })
+            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.weight(1f))
         }
 
         // Weekly chart

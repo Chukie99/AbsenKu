@@ -106,6 +106,12 @@ def main():
         ("🎯  Poin Disiplin", "poin_disiplin"),
         ("📈  Laporan", "laporan"),
         ("🏷️  Cetak Name Tag", "cetak_name_tag"),
+        ("─────────", None),
+        ("👤  Detail Siswa", "siswa_detail"),
+        ("🏆  Ranking", "ranking"),
+        ("📄  Export PDF", "pdf_generator"),
+        ("📊  Export Excel", "excel_export"),
+        ("🖨️  Cetak Massal", "batch_print"),
         ("⚙️  Pengaturan", "pengaturan"),
     ]
 
@@ -146,6 +152,11 @@ def main():
 
     # Build sidebar buttons
     for label, key in items:
+        if key is None:
+            # Separator line
+            sep = tk.Frame(sidebar, bg=C.get("sidebar_fg", "#CBD5E1"), height=1) if not HAS_BOOTSTRAP else ttk.Separator(sidebar, orient="horizontal")
+            sep.pack(fill="x", padx=16, pady=8)
+            continue
         if HAS_BOOTSTRAP:
             btn = ttk.Button(sidebar, text=label,
                            command=lambda k=key: show(k),

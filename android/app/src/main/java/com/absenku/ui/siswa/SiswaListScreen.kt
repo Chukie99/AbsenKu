@@ -44,6 +44,7 @@ import com.absenku.data.model.Siswa
 fun SiswaListScreen(
     onAdd: () -> Unit = {},
     onEdit: (Siswa) -> Unit = {},
+    onDetail: (Siswa) -> Unit = {},
     viewModel: SiswaViewModel = hiltViewModel(),
 ) {
     val s by viewModel.state.collectAsStateWithLifecycle()
@@ -117,7 +118,7 @@ fun SiswaListScreen(
             } else {
                 LazyColumn {
                     items(s.filtered, key = { it.id }) { siswa ->
-                        SiswaRow(siswa, onEdit, onLongPress = { viewModel.softDelete(siswa.id) })
+                        SiswaRow(siswa, onEdit, onDetail = onDetail, onLongPress = { viewModel.softDelete(siswa.id) })
                     }
                 }
             }
@@ -129,6 +130,7 @@ fun SiswaListScreen(
 private fun SiswaRow(
     siswa: Siswa,
     onEdit: (Siswa) -> Unit,
+    onDetail: (Siswa) -> Unit,
     onLongPress: (Siswa) -> Unit,
 ) {
     val painter = rememberAsyncImagePainter(
@@ -142,7 +144,7 @@ private fun SiswaRow(
             .padding(horizontal = 8.dp, vertical = 4.dp)
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onTap = { onEdit(siswa) },
+                    onTap = { onDetail(siswa) },
                     onLongPress = { onLongPress(siswa) },
                 )
             },

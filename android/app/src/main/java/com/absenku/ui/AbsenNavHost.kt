@@ -36,7 +36,8 @@ val bottomNavItems = listOf(
 
 /** Routes that should NOT show the bottom nav bar. */
 private val noBottomBarRoutes = setOf(
-    "siswa_list", "siswa_form/{siswaId}", "poin_disiplin", "jadwal_pelajaran", "nilai", "qr_scanner"
+    "siswa_list", "siswa_form/{siswaId}", "student_detail/{siswaId}",
+    "poin_disiplin", "jadwal_pelajaran", "nilai", "qr_scanner", "ranking", "batch_print/{kelasId}"
 )
 
 /**
@@ -78,6 +79,8 @@ fun AbsenNavHost(navController: NavHostController, modifier: Modifier = Modifier
                     onNavigateToJadwal = { navController.navigate("jadwal_pelajaran") },
                     onNavigateToNilai = { navController.navigate("nilai") },
                     onNavigateToQrScanner = { navController.navigate("qr_scanner") },
+                    onNavigateToRanking = { navController.navigate("ranking") },
+                    onNavigateToBatchPrint = { kelasId -> navController.navigate("batch_print/$kelasId") },
                 )
             }
             composable(BottomNavItem.Absen.route) { AbsenScreen() }
@@ -89,6 +92,7 @@ fun AbsenNavHost(navController: NavHostController, modifier: Modifier = Modifier
                 com.absenku.ui.siswa.SiswaListScreen(
                     onAdd = { navController.navigate("siswa_form/0") },
                     onEdit = { siswa -> navController.navigate("siswa_form/${siswa.id}") },
+                    onDetail = { siswa -> navController.navigate("student_detail/${siswa.id}") },
                 )
             }
             composable(
@@ -100,6 +104,18 @@ fun AbsenNavHost(navController: NavHostController, modifier: Modifier = Modifier
                     siswaId = siswaId,
                     onSaved = { navController.popBackStack() },
                     onCancel = { navController.popBackStack() },
+                )
+            }
+
+            // ── Student Detail ──
+            composable(
+                "student_detail/{siswaId}",
+                arguments = listOf(navArgument("siswaId") { type = NavType.LongType })
+            ) { backStackEntry ->
+                com.absenku.ui.student_detail.StudentDetailScreen(
+                    onBack = { navController.popBackStack() },
+                    onEdit = { siswaId -> navController.navigate("siswa_form/$siswaId") },
+                    onArchived = { navController.popBackStack() },
                 )
             }
 
@@ -121,6 +137,23 @@ fun AbsenNavHost(navController: NavHostController, modifier: Modifier = Modifier
             // ── QR Scanner ──
             composable("qr_scanner") {
                 QrScannerScreen(onBack = { navController.popBackStack() })
+            }
+
+            // ── Ranking ──
+            composable("ranking") {
+                com.absenku.ui.ranking.RankingScreen(onBack = { navController.popBackStack() })
+            }
+
+            // ── Batch Print ──
+            composable(
+                "batch_print/{kelasId}",
+                arguments = listOf(navArgument("kelasId") { type = NavType.LongType })
+            ) { backStackEntry ->
+                val kelasId = backStackEntry.arguments?.getLong("kelasId") ?: 0L
+                com.absenku.ui.batch_print.BatchPrintScreen(
+                    kelasId = kelasId,
+                    onBack = { navController.popBackStack() },
+                )
             }
         }
     }
