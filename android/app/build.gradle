@@ -120,9 +120,6 @@ dependencies {
     // Apache Commons CSV (Maven Central — no JitPack)
     implementation "org.apache.commons:commons-csv:1.10.0"
 
-    // iTextPDF — PDF generation for student cards, biodata, report cards
-    implementation "com.itextpdf:itext7-core:8.0.4"
-
     // Apache POI — Excel (.xlsx) report generation
     implementation "org.apache.poi:poi:5.2.5"
     implementation "org.apache.poi:poi-ooxml:5.2.5"

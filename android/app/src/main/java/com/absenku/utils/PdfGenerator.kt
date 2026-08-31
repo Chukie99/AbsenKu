@@ -2,30 +2,17 @@ package com.absenku.utils
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.pdf.PdfDocument
 import android.net.Uri
-import com.itextpdf.io.image.ImageDataFactory
-import com.itextpdf.kernel.colors.ColorConstants
-import com.itextpdf.kernel.colors.DeviceRgb
-import com.itextpdf.kernel.geom.PageSize
-import com.itextpdf.kernel.geom.Rectangle
-import com.itextpdf.kernel.pdf.PdfDocument
-import com.itextpdf.kernel.pdf.PdfWriter
-import com.itextpdf.layout.Document
-import com.itextpdf.layout.borders.Border
-import com.itextpdf.layout.borders.SolidBorder
-import com.itextpdf.layout.element.Cell
-import com.itextpdf.layout.element.Image
-import com.itextpdf.layout.element.Paragraph
-import com.itextpdf.layout.element.Table
-import com.itextpdf.layout.properties.HorizontalAlignment
-import com.itextpdf.layout.properties.TextAlignment
-import com.itextpdf.layout.properties.VerticalAlignment
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 
 /**
- * PDF generation utilities using iText 7.
+ * PDF generation utilities using Android native PdfDocument API.
  *
  * Provides three document types mirroring the KelasFun features:
  *  - generateStudentCards → ID-card sized PDF with QR codes
@@ -36,32 +23,18 @@ import java.io.FileOutputStream
  */
 object PdfGenerator {
 
-    private val headerColor = DeviceRgb(0x2D, 0x37, 0x48)
-    private val accentColor = DeviceRgb(0x4F, 0xD1, 0xC5)
-    private val lightBg = DeviceRgb(0xF7, 0xFA, 0xFC)
-    private val borderColor = DeviceRgb(0xCB, 0xD5, 0xE0)
-    private val grey700 = DeviceRgb(0x4A, 0x55, 0x68)
-    private val grey500 = DeviceRgb(0x71, 0x80, 0x9A)
-    private val grey200 = DeviceRgb(0xED, 0xF2, 0xF7)
+    private const val PAGE_W = 595   // A4 width in points
+    private const val PAGE_H = 842   // A4 height in points
+    private const val MARGIN = 40f
+    private const val ID_PAGE_W = 153  // 54mm ≈ 153pt
+    private const val ID_PAGE_H = 244  // 86mm ≈ 244pt
 
-    // ID Card dimensions in points (1mm = 2.83465pt) — 54mm × 86mm
-    private const val ID_W_MM = 54f
-    private const val ID_H_MM = 86f
-    private const val MM_TO_PT = 2.83465f
-    private val ID_CARD_SIZE = Rectangle(ID_W_MM * MM_TO_PT, ID_H_MM * MM_TO_PT)
+    private val paint = Paint().apply { isAntiAlias = true }
 
     // ─────────────────────────────────────────────────────────────────────
     // 1) STUDENT ID CARDS — one page per student
     // ─────────────────────────────────────────────────────────────────────
 
-    /**
-     * Generate ID cards (54×86mm) for a list of students.
-     *
-     * @param students list of (nis, nama, kelasNama, fotoPath?)
-     * @param schoolName shown in the header
-     * @param output destination Uri from SAF
-     * @return true on success
-     */
     fun generateStudentCards(
         context: Context,
         students: List<StudentCardData>,
@@ -69,114 +42,61 @@ object PdfGenerator {
         output: Uri,
     ): Boolean = try {
         val stream = context.contentResolver.openOutputStream(output) ?: return false
-        val pdf = PdfDocument(PdfWriter(stream))
-        Document(pdf, ID_CARD_SIZE).use { doc ->
-            doc.setMargins(0f, 0f, 0f, 0f)
-            students.forEach { s ->
-                doc.add(buildIdCard(s, schoolName))
-                doc.add(Paragraph().setHeight(0f)) // ensure page break for next
-            }
+        val pdf = PdfDocument()
+        students.forEach { s ->
+            val page = pdf.startPage(PdfDocument.PageInfo.Builder(ID_PAGE_W, ID_PAGE_H, students.indexOf(s) + 1).create())
+            drawIdCard(page.canvas, s, schoolName)
+            pdf.finishPage(page)
         }
+        pdf.writeTo(stream)
+        pdf.close()
         stream.close()
         true
-    } catch (e: Exception) {
-        e.printStackTrace()
-        false
-    }
+    } catch (e: Exception) { e.printStackTrace(); false }
 
-    /**
-     * Variant: write to a File (for BatchPrintManager).
-     */
     fun generateStudentCardsToFile(
         students: List<StudentCardData>,
         schoolName: String?,
         file: File,
     ): File = try {
         val out = FileOutputStream(file)
-        val pdf = PdfDocument(PdfWriter(out))
-        Document(pdf, ID_CARD_SIZE).use { doc ->
-            doc.setMargins(0f, 0f, 0f, 0f)
-            students.forEach { s -> doc.add(buildIdCard(s, schoolName)) }
+        val pdf = PdfDocument()
+        students.forEachIndexed { i, s ->
+            val page = pdf.startPage(PdfDocument.PageInfo.Builder(ID_PAGE_W, ID_PAGE_H, i + 1).create())
+            drawIdCard(page.canvas, s, schoolName)
+            pdf.finishPage(page)
         }
+        pdf.writeTo(out)
+        pdf.close()
         out.close()
         file
-    } catch (e: Exception) {
-        e.printStackTrace()
-        file
-    }
+    } catch (e: Exception) { e.printStackTrace(); file }
 
-    private fun buildIdCard(s: StudentCardData, schoolName: String?): Table {
-        val photoBmp: Bitmap? = s.fotoPath?.let { loadBitmapFromFile(it) }
-
-        // Generate QR as bitmap
-        val qrBmp: Bitmap = try {
-            QrCodeGenerator.generate("ABS:${s.nis}:${s.nama}:${s.kelasNama}", 200)
-        } catch (e: Exception) { null } ?: Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
-
-        // Container table — full card area, 1 column
-        val card = Table(1).useAllAvailableWidth()
-        card.setHeight(ID_CARD_SIZE.height)
-        card.setBorder(SolidBorder(borderColor, 0.5f))
-        card.setBackgroundColor(ColorConstants.WHITE)
-
-        // ── HEADER ──
-        val header = Table(1).useAllAvailableWidth()
-        header.setBackgroundColor(headerColor)
-        header.addCell(
-            Cell().setBorder(Border.NO_BORDER)
-                .setPadding(6f)
-                .add(
-                    Paragraph(schoolName?.takeIf { it.isNotBlank() } ?: "SEKOLAH")
-                        .setFontColor(ColorConstants.WHITE)
-                        .setFontSize(8f)
-                        .setBold()
-                        .setTextAlignment(TextAlignment.CENTER)
-                )
-                .add(
-                    Paragraph("KARTU SISWA")
-                        .setFontColor(ColorConstants.WHITE)
-                        .setFontSize(6f)
-                        .setBold()
-                        .setTextAlignment(TextAlignment.CENTER)
-                        .setPaddingTop(2f)
-                )
-        )
-        card.addHeaderCell(Cell().setBorder(Border.NO_BORDER).setPadding(0f).add(header))
-
-        // ── CONTENT (photo + info) ──
-        val content = Table(1).useAllAvailableWidth()
-        content.setBackgroundColor(lightBg)
-        val contentCell = Cell().setBorder(Border.NO_BORDER).setPadding(6f).setVerticalAlignment(VerticalAlignment.MIDDLE)
-
-        // Photo
-        val photoCell = Cell().setBorder(SolidBorder(accentColor, 1.5f)).setWidth(50f).setHeight(60f)
-        if (photoBmp != null) {
-            val img = Image(ImageDataFactory.create(bitmapToBytes(photoBmp))).setWidth(48f).setHeight(58f)
-            photoCell.add(img)
-        } else {
-            photoCell.setBackgroundColor(grey200)
-            photoCell.add(
-                Paragraph("FOTO").setFontColor(grey500).setFontSize(6f).setTextAlignment(TextAlignment.CENTER)
-            )
-        }
-        contentCell.add(photoCell.setHorizontalAlignment(HorizontalAlignment.CENTER))
-
-        contentCell.add(Paragraph("NIS   : ${s.nis}").setFontSize(6f).setFontColor(grey700).setTextAlignment(TextAlignment.CENTER).setMarginTop(4f))
-        contentCell.add(Paragraph("Nama  : ${s.nama}").setFontSize(7f).setBold().setFontColor(headerColor).setTextAlignment(TextAlignment.CENTER))
-        contentCell.add(Paragraph("Kelas : ${s.kelasNama}").setFontSize(6f).setFontColor(grey700).setTextAlignment(TextAlignment.CENTER))
-
-        content.addCell(contentCell)
-        card.addCell(Cell().setBorder(Border.NO_BORDER).setPadding(0f).add(content))
-
-        // ── QR FOOTER ──
-        val qrCell = Cell().setBorder(Border.NO_BORDER).setPadding(4f)
-        qrCell.setHorizontalAlignment(HorizontalAlignment.CENTER)
-        val qrImg = Image(ImageDataFactory.create(bitmapToBytes(qrBmp))).setWidth(36f).setHeight(36f)
-        qrCell.add(qrImg)
-        qrCell.add(Paragraph("SCAN UNTUK VERIFIKASI").setFontSize(5f).setFontColor(grey500).setTextAlignment(TextAlignment.CENTER))
-        card.addCell(qrCell)
-
-        return card
+    private fun drawIdCard(canvas: Canvas, s: StudentCardData, schoolName: String?) {
+        val w = ID_PAGE_W.toFloat()
+        // Header background
+        paint.color = Color.parseColor("#2D3748")
+        canvas.drawRect(0f, 0f, w, 50f, paint)
+        // Header text
+        paint.color = Color.WHITE; paint.textSize = 10f; paint.textAlign = Paint.Align.CENTER
+        canvas.drawText(schoolName?.takeIf { it.isNotBlank() } ?: "SEKOLAH", w / 2, 22f, paint)
+        paint.textSize = 8f
+        canvas.drawText("KARTU SISWA", w / 2, 38f, paint)
+        // QR code
+        try {
+            val qr = QrCodeGenerator.generate("ABS:${s.nis}:${s.nama}:${s.kelasNama}", 80)
+            canvas.drawBitmap(qr, (w - 80) / 2, 55f, null)
+        } catch (_: Exception) {}
+        // Info
+        paint.textAlign = Paint.Align.CENTER; paint.textSize = 8f; paint.color = Color.BLACK
+        canvas.drawText("NIS: ${s.nis}", w / 2, 150f, paint)
+        paint.textSize = 10f; paint.isFakeBoldText = true
+        canvas.drawText(s.nama, w / 2, 168f, paint)
+        paint.isFakeBoldText = false; paint.textSize = 8f; paint.color = Color.DKGRAY
+        canvas.drawText("Kelas: ${s.kelasNama}", w / 2, 184f, paint)
+        // Footer
+        paint.textSize = 6f; paint.color = Color.GRAY
+        canvas.drawText("SCAN UNTUK VERIFIKASI", w / 2, 235f, paint)
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -184,144 +104,62 @@ object PdfGenerator {
     // ─────────────────────────────────────────────────────────────────────
 
     fun generateBiodata(
-        context: Context,
-        nis: String,
-        fullName: String,
-        className: String,
-        gender: String? = null,
-        birthDate: String? = null,
-        address: String? = null,
-        parentPhone: String? = null,
-        schoolName: String? = null,
-        output: Uri,
+        context: Context, nis: String, fullName: String, className: String,
+        gender: String? = null, birthDate: String? = null, address: String? = null,
+        parentPhone: String? = null, schoolName: String? = null, output: Uri,
     ): Boolean = try {
         val stream = context.contentResolver.openOutputStream(output) ?: return false
-        val pdf = PdfDocument(PdfWriter(stream))
-        Document(pdf, PageSize.A4).use { doc ->
-            if (!schoolName.isNullOrBlank()) {
-                doc.add(
-                    Paragraph(schoolName)
-                        .setFontSize(16f).setBold()
-                        .setTextAlignment(TextAlignment.CENTER)
-                )
-            }
-            doc.add(
-                Paragraph("FORM BIODATA SISWA")
-                    .setFontSize(14f).setBold()
-                    .setTextAlignment(TextAlignment.CENTER)
-                    .setMarginTop(4f)
-            )
-            doc.add(Paragraph(" ").setMarginTop(16f))
-
-            biodataRow("NIS", nis).also { doc.add(it) }
-            biodataRow("Nama Lengkap", fullName).also { doc.add(it) }
-            biodataRow("Kelas", className).also { doc.add(it) }
-            biodataRow("Jenis Kelamin", gender ?: "-").also { doc.add(it) }
-            biodataRow("Tanggal Lahir", birthDate ?: "-").also { doc.add(it) }
-            biodataRow("Alamat", address ?: "-").also { doc.add(it) }
-            biodataRow("No. HP Orang Tua", parentPhone ?: "-").also { doc.add(it) }
-        }
-        stream.close()
-        true
-    } catch (e: Exception) {
-        e.printStackTrace()
-        false
-    }
-
-    private fun biodataRow(label: String, value: String): Table {
-        val t = Table(floatArrayOf(150f, 6f, 360f)).useAllAvailableWidth()
-        t.addCell(Cell().add(Paragraph(label)).setBorder(Border.NO_BORDER))
-        t.addCell(Cell().add(Paragraph(":")).setBorder(Border.NO_BORDER))
-        t.addCell(Cell().add(Paragraph(value)).setBorder(Border.NO_BORDER))
-        return t
-    }
+        val pdf = PdfDocument()
+        val page = pdf.startPage(PdfDocument.PageInfo.Builder(PAGE_W, PAGE_H, 1).create())
+        val c = page.canvas; var y = 60f
+        if (!schoolName.isNullOrBlank()) { paint.textSize = 16f; paint.isFakeBoldText = true; paint.textAlign = Paint.Align.CENTER; c.drawText(schoolName, PAGE_W / 2f, y, paint); y += 24f }
+        paint.textSize = 14f; c.drawText("FORM BIODATA SISWA", PAGE_W / 2f, y, paint); y += 30f
+        paint.isFakeBoldText = false; paint.textAlign = Paint.Align.LEFT; paint.textSize = 11f
+        listOf("NIS" to nis, "Nama Lengkap" to fullName, "Kelas" to className,
+            "Jenis Kelamin" to (gender ?: "-"), "Tanggal Lahir" to (birthDate ?: "-"),
+            "Alamat" to (address ?: "-"), "No. HP Orang Tua" to (parentPhone ?: "-")
+        ).forEach { (l, v) -> c.drawText("$l : $v", MARGIN, y, paint); y += 22f }
+        pdf.finishPage(page); pdf.writeTo(stream); pdf.close(); stream.close(); true
+    } catch (e: Exception) { e.printStackTrace(); false }
 
     // ─────────────────────────────────────────────────────────────────────
     // 3) REPORT CARD — A4 with grades table
     // ─────────────────────────────────────────────────────────────────────
 
-    data class ReportGradeRow(
-        val subject: String,
-        val uts: String,
-        val uas: String,
-        val tugas: String,
-        val average: String,
-    )
+    data class ReportGradeRow(val subject: String, val uts: String, val uas: String, val tugas: String, val average: String)
 
     fun generateReportCard(
-        context: Context,
-        studentName: String,
-        nis: String,
-        className: String,
-        semester: String,
-        grades: List<ReportGradeRow>,
-        totalViolationPoints: Int,
-        totalAchievementPoints: Int,
-        rank: Int,
-        totalStudents: Int,
-        schoolName: String?,
-        output: Uri,
+        context: Context, studentName: String, nis: String, className: String,
+        semester: String, grades: List<ReportGradeRow>, totalViolationPoints: Int,
+        totalAchievementPoints: Int, rank: Int, totalStudents: Int,
+        schoolName: String?, output: Uri,
     ): Boolean = try {
         val stream = context.contentResolver.openOutputStream(output) ?: return false
-        val pdf = PdfDocument(PdfWriter(stream))
-        Document(pdf, PageSize.A4).use { doc ->
-            if (!schoolName.isNullOrBlank()) {
-                doc.add(
-                    Paragraph(schoolName)
-                        .setFontSize(16f).setBold()
-                        .setTextAlignment(TextAlignment.CENTER)
-                )
-            }
-            doc.add(
-                Paragraph("LAPORAN HASIL BELAJAR")
-                    .setFontSize(14f).setBold()
-                    .setTextAlignment(TextAlignment.CENTER)
-                    .setMarginTop(4f)
-            )
-            doc.add(
-                Paragraph("Semester: $semester")
-                    .setFontSize(11f)
-                    .setTextAlignment(TextAlignment.CENTER)
-            )
-            doc.add(Paragraph(" ").setMarginTop(16f))
-
-            biodataRow("Nama", studentName).also { doc.add(it) }
-            biodataRow("NIS", nis).also { doc.add(it) }
-            biodataRow("Kelas", className).also { doc.add(it) }
-
-            doc.add(Paragraph(" ").setMarginTop(16f))
-            doc.add(Paragraph("Daftar Nilai").setBold().setFontSize(12f))
-
-            val table = Table(floatArrayOf(30f, 150f, 70f, 70f, 70f, 80f)).useAllAvailableWidth()
-            val headerStyle = TextAlignment.CENTER
-            listOf("No", "Mapel", "UTS", "UAS", "Tugas", "Rata-rata").forEach { h ->
-                table.addHeaderCell(
-                    Cell().add(Paragraph(h).setBold())
-                        .setTextAlignment(headerStyle)
-                        .setBackgroundColor(DeviceRgb(0xE3, 0xF2, 0xFD))
-                )
-            }
-            grades.forEachIndexed { i, g ->
-                table.addCell(Cell().add(Paragraph("${i + 1}")).setTextAlignment(TextAlignment.CENTER))
-                table.addCell(Cell().add(Paragraph(g.subject)))
-                table.addCell(Cell().add(Paragraph(g.uts)).setTextAlignment(TextAlignment.CENTER))
-                table.addCell(Cell().add(Paragraph(g.uas)).setTextAlignment(TextAlignment.CENTER))
-                table.addCell(Cell().add(Paragraph(g.tugas)).setTextAlignment(TextAlignment.CENTER))
-                table.addCell(Cell().add(Paragraph(g.average)).setTextAlignment(TextAlignment.CENTER))
-            }
-            doc.add(table)
-
-            doc.add(Paragraph(" ").setMarginTop(16f))
-            biodataRow("Poin Prestasi", "+$totalAchievementPoints").also { doc.add(it) }
-            biodataRow("Poin Pelanggaran", "-$totalViolationPoints").also { doc.add(it) }
-            biodataRow("Peringkat", "$rank dari $totalStudents").also { doc.add(it) }
+        val pdf = PdfDocument()
+        val page = pdf.startPage(PdfDocument.PageInfo.Builder(PAGE_W, PAGE_H, 1).create())
+        val c = page.canvas; var y = 60f
+        if (!schoolName.isNullOrBlank()) { paint.textSize = 16f; paint.isFakeBoldText = true; paint.textAlign = Paint.Align.CENTER; c.drawText(schoolName, PAGE_W / 2f, y, paint); y += 24f }
+        paint.textSize = 14f; c.drawText("LAPORAN HASIL BELAJAR", PAGE_W / 2f, y, paint); y += 20f
+        paint.textSize = 11f; paint.isFakeBoldText = false; c.drawText("Semester: $semester", PAGE_W / 2f, y, paint); y += 30f
+        paint.textAlign = Paint.Align.LEFT; paint.textSize = 11f
+        listOf("Nama" to studentName, "NIS" to nis, "Kelas" to className).forEach { (l, v) -> c.drawText("$l : $v", MARGIN, y, paint); y += 20f }
+        y += 10f; paint.isFakeBoldText = true; c.drawText("Daftar Nilai", MARGIN, y, paint); y += 20f; paint.isFakeBoldText = false
+        // Table header
+        val cols = floatArrayOf(MARGIN, MARGIN + 30, MARGIN + 180, MARGIN + 250, MARGIN + 320, MARGIN + 390, MARGIN + 460)
+        paint.isFakeBoldText = true; paint.textSize = 9f
+        listOf("No", "Mapel", "UTS", "UAS", "Tugas", "Rata-rata").forEachIndexed { i, h -> c.drawText(h, cols[i], y, paint) }
+        y += 4f; paint.strokeWidth = 1f; c.drawLine(MARGIN, y, PAGE_W - MARGIN, y, paint); y += 14f; paint.isFakeBoldText = false
+        paint.textSize = 9f
+        grades.forEachIndexed { i, g ->
+            c.drawText("${i + 1}", cols[0], y, paint); c.drawText(g.subject, cols[1], y, paint)
+            c.drawText(g.uts, cols[2], y, paint); c.drawText(g.uas, cols[3], y, paint)
+            c.drawText(g.tugas, cols[4], y, paint); c.drawText(g.average, cols[5], y, paint); y += 16f
         }
-        stream.close()
-        true
-    } catch (e: Exception) {
-        e.printStackTrace()
-        false
-    }
+        y += 10f; paint.textSize = 11f
+        listOf("Poin Prestasi" to "+$totalAchievementPoints", "Poin Pelanggaran" to "-$totalViolationPoints",
+            "Peringkat" to "$rank dari $totalStudents").forEach { (l, v) -> c.drawText("$l : $v", MARGIN, y, paint); y += 20f }
+        pdf.finishPage(page); pdf.writeTo(stream); pdf.close(); stream.close(); true
+    } catch (e: Exception) { e.printStackTrace(); false }
 
     // ─────────────────────────────────────────────────────────────────────
     // Helpers
